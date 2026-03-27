@@ -1,202 +1,130 @@
+// Weather functions using Open Meteo API
+
 export interface Coordinates {
-	lat: number;
-	lon: number;
+    latitude: number;
+    longitude: number;
 }
 
-export interface GeocodingResult extends Coordinates {
-	name: string;
-	country: string;
-	state?: string;
-}
-
-export interface WeatherData {
-	dt: number;
-	main: {
-		temp: number;
-		feels_like: number;
-		temp_min: number;
-		temp_max: number;
-		pressure: number;
-		humidity: number;
-		sea_level?: number;
-		grnd_level?: number;
-	};
-	weather: Array<{
-		id: number;
-		main: string;
-		description: string;
-		icon: string;
-	}>;
-	clouds: {
-		all: number;
-	};
-	wind: {
-		speed: number;
-		deg: number;
-		gust?: number;
-	};
-	visibility: number;
-	rain?: {
-		'3h'?: number;
-		'1h'?: number;
-	};
-	dt_txt?: string;
-}
-
-export type CurrentWeather = WeatherData;
-export type ForecastItem = WeatherData;
-
-export interface ForecastWeather {
-	cod: string;
-	message: number;
-	cnt: number;
-	list: ForecastItem[];
-	city: {
-		id: number;
-		name: string;
-		coord: Coordinates;
-		country: string;
-		population: number;
-		timezone: number;
-		sunrise: number;
-		sunset: number;
-	};
-}
-
-const OPENWEATHER_GEOCODING_URL = "https://api.openweathermap.org/geo/1.0/direct";
-const OPENWEATHER_CURRENT_WEATHER_URL = "https://api.openweathermap.org/data/2.5/weather";
-const OPENWEATHER_FORECAST_URL = "https://api.openweathermap.org/data/2.5/forecast";
-
-function getOpenWeatherApiKey(): string {
-	const key = import.meta.env.VITE_OPENWEATHER_API_KEY;
-
-	if (!key) {
-		throw new Error("Missing OpenWeather API key. Set VITE_OPENWEATHER_API_KEY.");
-	}
-
-	return key;
-}
-
-/**
- * Convert a location string (e.g. "Berlin" or "Paris,FR") to lat/lon.
- */
 export async function getCoordinatesFromLocation(location: string): Promise<Coordinates> {
-	if (!location.trim()) {
-		throw new Error("Location is required.");
-	}
-
-	const apiKey = getOpenWeatherApiKey();
-	const url = new URL(OPENWEATHER_GEOCODING_URL);
-
-	url.searchParams.set("q", location.trim());
-	url.searchParams.set("limit", "1");
-	url.searchParams.set("appid", apiKey);
-
-	const response = await fetch(url.toString());
-
-	if (!response.ok) {
-		throw new Error(`Failed to geocode location: ${response.status} ${response.statusText}`);
-	}
-
-	const results = (await response.json()) as GeocodingResult[];
-
-	if (!results.length) {
-		throw new Error(`No coordinates found for location: ${location}`);
-	}
-
-	return {
-		lat: results[0].lat,
-		lon: results[0].lon,
-	};
+    const resp = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${location}&count=1&language=en&format=json`);
+    if (!resp.ok) {
+        throw new Error('Unable to locate');
+    }
+    const data = (await resp.json()).results as { latitude: number, longitude: number }[];
+    if (data.length === 0) {
+        throw new Error('Unable to locate');
+    }
+    return data[0];
 }
 
-/**
- * Get user's current coordinates via browser geolocation API.
- */
 export function getUserCoordinates(): Promise<Coordinates> {
-	if (!('geolocation' in navigator)) {
-		throw new Error('Geolocation is not supported by this browser.');
-	}
+    if (!('geolocation' in navigator)) {
+        throw new Error('Geolocation is not supported by this browser.');
+    }
 
-	return new Promise<Coordinates>((resolve, reject) => {
-		navigator.geolocation.getCurrentPosition(
-			(position) => {
-				resolve({
-					lat: position.coords.latitude,
-					lon: position.coords.longitude,
-				});
-			},
-			(error) => {
-				reject(new Error(error.message || 'Unable to get current location.'));
-			},
-			{
-				enableHighAccuracy: true,
-				timeout: 10000,
-				maximumAge: 300000,
-			},
-		);
-	});
+    return new Promise<Coordinates>((resolve, reject) => {
+        navigator.geolocation.getCurrentPosition(
+            (position) => {
+                resolve({
+                    latitude: position.coords.latitude,
+                    longitude: position.coords.longitude,
+                });
+            },
+            (error) => {
+                reject(new Error(error.message || 'Unable to get current location.'));
+            }
+        );
+    });
 }
 
-/**
- * Fetch current weather from OpenWeather Current Weather API by coordinates.
- */
-export async function fetchCurrentWeatherByCoords(
-	lat: number,
-	lon: number,
-): Promise<CurrentWeather> {
-	const apiKey = getOpenWeatherApiKey();
-	const url = new URL(OPENWEATHER_CURRENT_WEATHER_URL);
 
-	url.searchParams.set("lat", String(lat));
-	url.searchParams.set("lon", String(lon));
-	url.searchParams.set("appid", apiKey);
-	url.searchParams.set("units", "metric");
-
-	const response = await fetch(url.toString());
-
-	if (!response.ok) {
-		throw new Error(`Failed to fetch weather: ${response.status} ${response.statusText}`);
-	}
-
-	return (await response.json()) as CurrentWeather;
+function getWeatherLabel(code: number): string {
+    if (code === 0) return "☀️ sunny";
+    if ([1, 2].includes(code)) return "⛅ partly cloudy";
+    if (code === 3) return "☁️ cloudy";
+    if ([45, 48].includes(code)) return "🌫️ foggy";
+    if (code >= 51 && code <= 67) return "🌧️ rainy";
+    if (code >= 71 && code <= 77) return "❄️ snowy";
+    if (code >= 80 && code <= 82) return "🌦️ rain showers";
+    if (code >= 95) return "⛈️ thunderstorm";
+    return "? unknown";
 }
 
-/**
- * Fetch weather forecast from OpenWeather 5-day/3-hour Forecast API by coordinates.
- */
-export async function fetchForecastByCoords(lat: number, lon: number): Promise<ForecastWeather> {
-	const apiKey = getOpenWeatherApiKey();
-	const url = new URL(OPENWEATHER_FORECAST_URL);
-
-	url.searchParams.set("lat", String(lat));
-	url.searchParams.set("lon", String(lon));
-	url.searchParams.set("appid", apiKey);
-	url.searchParams.set("units", "metric");
-
-	const response = await fetch(url.toString());
-
-	if (!response.ok) {
-		throw new Error(`Failed to fetch forecast: ${response.status} ${response.statusText}`);
-	}
-
-	return (await response.json()) as ForecastWeather;
+export interface WeatherData extends Coordinates {
+    time: string;
+    elevation: number;
+    temperature_2m: number;
+    relative_humidity_2m: number;
+    dew_point_2m: number;
+    apparent_temperature: number;
+    sunshine_duration: number;
+    precipitation: number;
+    snowfall: number;
+    rain: number;
+    showers: number;
+    wind_speed_10m: number;
+    wind_direction_10m: number;
+    wind_gusts_10m: number;
+    visibility: number;
+    weather_code: number;
+    weather_label: string;
 }
 
-/**
- * Convenience wrapper: geocode a location string and fetch current weather.
- */
-export async function fetchCurrentWeatherByLocation(location: string): Promise<CurrentWeather> {
-	const { lat, lon } = await getCoordinatesFromLocation(location);
+export async function fetchWeatherByCoordinatesMinutely15(coordinates: Coordinates[]): Promise<WeatherData[]> {
+    if (coordinates.length === 0) {
+        return [];
+    }
+    const resp = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${coordinates[0].latitude}&longitude=${coordinates[0].longitude}&minutely_15=temperature_2m,relative_humidity_2m,dew_point_2m,apparent_temperature,sunshine_duration,precipitation,snowfall,rain,showers,wind_speed_10m,wind_direction_10m,wind_gusts_10m,visibility,weather_code&forecast_minutely_15=${coordinates.length + 1}&timezone=auto`);
+    if (!resp.ok) throw new Error('Unable to fetch');
+    const data = await resp.json();
+    const times = data.minutely_15.time;
+    const res = [{
+        latitude: data.latitude,
+        longitude: data.longitude,
+        time: data.minutely_15.time[0],
+        elevation: data.elevation,
+        temperature_2m: data.minutely_15.temperature_2m[0],
+        relative_humidity_2m: data.minutely_15.relative_humidity_2m[0],
+        dew_point_2m: data.minutely_15.dew_point_2m[0],
+        apparent_temperature: data.minutely_15.apparent_temperature[0],
+        sunshine_duration: data.minutely_15.sunshine_duration[0],
+        precipitation: data.minutely_15.precipitation[0],
+        snowfall: data.minutely_15.snowfall[0],
+        rain: data.minutely_15.rain[0],
+        showers: data.minutely_15.showers[0],
+        wind_speed_10m: data.minutely_15.wind_speed_10m[0],
+        wind_direction_10m: data.minutely_15.wind_direction_10m[0],
+        wind_gusts_10m: data.minutely_15.wind_gusts_10m[0],
+        visibility: data.minutely_15.visibility[0],
+        weather_code: data.minutely_15.weather_code[0],
+        weather_label: getWeatherLabel(data.minutely_15.weather_code[0])
+    }];
 
-	return fetchCurrentWeatherByCoords(lat, lon);
-}
-
-/**
- * Convenience wrapper: geocode a location string and fetch weather forecast.
- */
-export async function fetchForecastByLocation(location: string): Promise<ForecastWeather> {
-	const { lat, lon } = await getCoordinatesFromLocation(location);
-
-	return fetchForecastByCoords(lat, lon);
+    for (let i = 1; i < times.length - 1; i++) {
+        const resp = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${coordinates[i].latitude}&longitude=${coordinates[i].longitude}&minutely_15=temperature_2m,relative_humidity_2m,dew_point_2m,apparent_temperature,sunshine_duration,precipitation,snowfall,rain,showers,wind_speed_10m,wind_direction_10m,wind_gusts_10m,visibility,weather_code&start_minutely_15=${times[i]}&&end_minutely_15=${times[i+1]}&timezone=auto`);
+        if (!resp.ok) throw new Error('Unable to fetch');
+        const data = await resp.json();
+        res.push({
+            latitude: data.latitude,
+            longitude: data.longitude,
+            time: data.minutely_15.time[0],
+            elevation: data.elevation,
+            temperature_2m: data.minutely_15.temperature_2m[0],
+            relative_humidity_2m: data.minutely_15.relative_humidity_2m[0],
+            dew_point_2m: data.minutely_15.dew_point_2m[0],
+            apparent_temperature: data.minutely_15.apparent_temperature[0],
+            sunshine_duration: data.minutely_15.sunshine_duration[0],
+            precipitation: data.minutely_15.precipitation[0],
+            snowfall: data.minutely_15.snowfall[0],
+            rain: data.minutely_15.rain[0],
+            showers: data.minutely_15.showers[0],
+            wind_speed_10m: data.minutely_15.wind_speed_10m[0],
+            wind_direction_10m: data.minutely_15.wind_direction_10m[0],
+            wind_gusts_10m: data.minutely_15.wind_gusts_10m[0],
+            visibility: data.minutely_15.visibility[0],
+            weather_code: data.minutely_15.weather_code[0],
+            weather_label: getWeatherLabel(data.minutely_15.weather_code[0])
+        });
+    }
+    return res;
 }
