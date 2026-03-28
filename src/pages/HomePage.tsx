@@ -60,7 +60,7 @@ export default function HomePage() {
   }
 
   return (
-    <main style={{ maxWidth: 1120, margin: '40px auto', padding: '0 16px', textAlign: 'left' }}>
+    <main style={{ margin: '40px auto', padding: '0 16px', textAlign: 'left' }}>
       <h1 style={{ marginBottom: 12, lineHeight: 1.2}}>Current Weather</h1>
 
       <form onSubmit={handleSubmit} style={{ display: 'flex', gap: 8, marginBottom: 10 }}>

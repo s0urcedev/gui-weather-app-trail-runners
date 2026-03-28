@@ -8,7 +8,11 @@ import './App.css'
 function App() {
   return (
     <>
-      <div style={{ paddingBottom: '80px' }}>
+      <div style={{ 
+        paddingBottom: '80px',
+        maxWidth: '100%',
+        width: '1040px',
+      }}>
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/about" element={<AboutPage />} />
