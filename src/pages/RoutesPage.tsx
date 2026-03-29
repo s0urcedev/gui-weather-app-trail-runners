@@ -2,6 +2,7 @@ import { useState } from 'react'
 import type { ChangeEvent } from 'react'
 import { ImportGPXButton } from '../components/ImportGPXButton';
 import RouteIcon from '../components/icons/RouteIcon';
+import { ImportPlaceholder } from '../components/ImportPlaceholder';
 
 function RoutesPage() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -34,6 +35,8 @@ function RoutesPage() {
           Upload Route
         </button>
       </div>
+
+      <ImportPlaceholder icon={<RouteIcon />} text="Import a route to see it here" />
     </div>
   )
 }
