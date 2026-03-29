@@ -1,5 +1,4 @@
 import type { WeatherData } from '../scripts/weather'
-import type { CSSProperties } from 'react'
 import { useState } from 'react'
 import './WeatherForecastPanel.css'
 
@@ -12,61 +11,74 @@ type MetricKey =
   | 'apparent_temperature'
   | 'elevation'
   | 'relative_humidity_2m'
+  | 'dew_point_2m'
   | 'precipitation'
+  | 'snowfall'
+  | 'rain'
+  | 'showers'
   | 'wind_speed_10m'
+  | 'wind_direction_10m'
+  | 'wind_gusts_10m'
   | 'visibility'
 
-type MetricConfig = {
+type MetricDefinition = {
   key: MetricKey
   label: string
   unit: string
-  color: string
   dashArray?: string
 }
 
-const metricConfig: MetricConfig[] = [
-  { key: 'temperature_2m', label: 'Temperature', unit: '°C', color: '#ef4444' },
+type ChartGroup = {
+  id: string
+  title: string
+  metrics: MetricDefinition[]
+}
+
+const chartGroups: ChartGroup[] = [
   {
-    key: 'apparent_temperature',
-    label: 'Apparent',
-    unit: '°C',
-    color: '#3b82f6',
-    dashArray: '7 4',
+    id: 'temp',
+    title: 'Temperature + Apparent',
+    metrics: [
+      { key: 'temperature_2m', label: 'Temperature', unit: '°C' },
+      { key: 'apparent_temperature', label: 'Apparent', unit: '°C', dashArray: '16 8' },
+    ],
   },
   {
-    key: 'elevation',
-    label: 'Elevation',
-    unit: 'm',
-    color: '#22c55e',
-    dashArray: '3 3',
+    id: 'elevation',
+    title: 'Elevation',
+    metrics: [{ key: 'elevation', label: 'Elevation', unit: 'm' }],
   },
   {
-    key: 'relative_humidity_2m',
-    label: 'Humidity',
-    unit: '%',
-    color: '#f97316',
-    dashArray: '10 5',
+    id: 'humidity',
+    title: 'Humidity + Dew Point',
+    metrics: [
+      { key: 'relative_humidity_2m', label: 'Humidity', unit: '%' },
+      { key: 'dew_point_2m', label: 'Dew point', unit: '°C', dashArray: '16 8' },
+    ],
   },
   {
-    key: 'precipitation',
-    label: 'Precipitation',
-    unit: 'mm',
-    color: '#eab308',
-    dashArray: '2 4',
+    id: 'precipitation',
+    title: 'Precipitation + Snowfall + Rain + Showers',
+    metrics: [
+      { key: 'precipitation', label: 'Precipitation', unit: 'mm' },
+      { key: 'snowfall', label: 'Snowfall', unit: 'cm', dashArray: '16 8' },
+      { key: 'rain', label: 'Rain', unit: 'mm', dashArray: '6 8' },
+      { key: 'showers', label: 'Showers', unit: 'mm', dashArray: '20 8' },
+    ],
   },
   {
-    key: 'wind_speed_10m',
-    label: 'Wind speed',
-    unit: 'km/h',
-    color: '#a855f7',
-    dashArray: '9 3 2 3',
+    id: 'wind',
+    title: 'Wind Speed + Direction + Gusts',
+    metrics: [
+      { key: 'wind_speed_10m', label: 'Speed', unit: 'km/h' },
+      { key: 'wind_direction_10m', label: 'Direction', unit: '°', dashArray: '16 8' },
+      { key: 'wind_gusts_10m', label: 'Gusts', unit: 'km/h', dashArray: '6 8' },
+    ],
   },
   {
-    key: 'visibility',
-    label: 'Visibility',
-    unit: 'm',
-    color: '#06b6d4',
-    dashArray: '12 4',
+    id: 'visibility',
+    title: 'Visibility',
+    metrics: [{ key: 'visibility', label: 'Visibility', unit: 'm' }],
   },
 ]
 
@@ -93,16 +105,26 @@ function formatValue(value: number): string {
   return value.toFixed(1)
 }
 
+function buildTickIndexes(length: number): number[] {
+  if (length <= 1) {
+    return [0]
+  }
+
+  const tickCount = length;
+  const indexes = Array.from({ length: tickCount }, (_, index) =>
+    Math.round((index * (length - 1)) / (tickCount - 1)),
+  )
+
+  return Array.from(new Set(indexes))
+}
+
+function getSeriesToneOpacity(index: number): number {
+  const opacities = [1, 0.64, 0.42, 0.27]
+  return opacities[index] ?? 0.2
+}
+
 export default function WeatherForecastPanel({ weatherData }: WeatherForecastPanelProps) {
-  const [enabledMetrics, setEnabledMetrics] = useState<Record<MetricKey, boolean>>(() => ({
-    temperature_2m: true,
-    apparent_temperature: true,
-    elevation: true,
-    relative_humidity_2m: true,
-    precipitation: true,
-    wind_speed_10m: true,
-    visibility: true,
-  }))
+  const [activeGroupIndex, setActiveGroupIndex] = useState(0)
 
   if (weatherData.length === 0) {
     return <section className="weather-panel">No weather data available.</section>
@@ -110,28 +132,70 @@ export default function WeatherForecastPanel({ weatherData }: WeatherForecastPan
 
   const current = weatherData[0]
   const forecast = weatherData.slice(1)
+  const activeGroup = chartGroups[activeGroupIndex]
 
-  const chartWidth = 980
-  const chartHeight = 400
-  const paddingTop = -20
-  const paddingRight = 40
-  const paddingBottom = 0
-  const paddingLeft = 40
+  const chartWidth = 960
+  const chartHeight = 380
+  const labelTopStart = 0
+  const labelRowStep = 28
+  const paddingTop = 26 + activeGroup.metrics.length * labelRowStep
+  const paddingRight = 20
+  const paddingBottom = 34
+  const paddingLeft = 20
   const drawableWidth = chartWidth - paddingLeft - paddingRight
   const drawableHeight = chartHeight - paddingTop - paddingBottom
 
   const forecastLength = forecast.length
   const xStep = forecastLength > 1 ? drawableWidth / (forecastLength - 1) : 0
 
-  const series = metricConfig.map((metric) => {
+  const unitScaleMap = new Map<string, { min: number; max: number; range: number }>()
+  activeGroup.metrics.forEach((metric) => {
+    let values = forecast.map((entry) => entry[metric.key])
+    let unit = metric.unit
+    
+    if (metric.key === 'snowfall') {
+      values = values.map((v) => v * 10)
+      unit = 'mm'
+    }
+    
+    const unitScale = unitScaleMap.get(unit)
+
+    if (!unitScale) {
+      const min = Math.min(...values)
+      const max = Math.max(...values)
+      unitScaleMap.set(unit, { min, max, range: max - min })
+      return
+    }
+
+    const nextMin = Math.min(unitScale.min, ...values)
+    const nextMax = Math.max(unitScale.max, ...values)
+    unitScaleMap.set(unit, { min: nextMin, max: nextMax, range: nextMax - nextMin })
+  })
+
+  const series = activeGroup.metrics.map((metric) => {
     const values = forecast.map((entry) => entry[metric.key])
     const min = Math.min(...values)
     const max = Math.max(...values)
     const range = max - min
+    
+    let unit = metric.unit
+    let normalizedValues = values
+    if (metric.key === 'snowfall') {
+      normalizedValues = values.map((v) => v * 10)
+      unit = 'mm'
+    }
+    
+    const unitScale = unitScaleMap.get(unit) ?? { min: normalizedValues[0] ?? 0, max: normalizedValues[0] ?? 0, range: 0 }
 
     const points = forecast.map((entry, index) => {
       const value = entry[metric.key]
-      const normalized = range === 0 ? 0.5 : (value - min) / range
+      const normalizedValue = metric.key === 'snowfall' ? value * 10 : value
+      const normalized =
+        range === 0
+          ? unitScale.range === 0
+            ? 0.5
+            : (normalizedValue - unitScale.min) / unitScale.range
+          : (value - min) / range
       const x = paddingLeft + index * xStep
       const y = paddingTop + (1 - normalized) * drawableHeight
       return { x, y, value }
@@ -143,15 +207,13 @@ export default function WeatherForecastPanel({ weatherData }: WeatherForecastPan
     }
   })
 
-  const enabledSeries = series.filter((metric) => enabledMetrics[metric.key])
-
   const pointSignature = (values: { x: number; y: number }[]) =>
     values.map((point) => `${point.x.toFixed(2)}:${point.y.toFixed(2)}`).join('|')
 
-  const seriesOffsets = new Array(enabledSeries.length).fill(0)
+  const seriesOffsets = new Array(series.length).fill(0)
   const overlappingSeries = new Map<string, number[]>()
 
-  enabledSeries.forEach((metric, metricIndex) => {
+  series.forEach((metric, metricIndex) => {
     const signature = pointSignature(metric.points)
     const indexes = overlappingSeries.get(signature) ?? []
     indexes.push(metricIndex)
@@ -170,21 +232,13 @@ export default function WeatherForecastPanel({ weatherData }: WeatherForecastPan
   })
 
   const seriesOffsetByKey = new Map<MetricKey, number>()
-  enabledSeries.forEach((metric, index) => {
+  series.forEach((metric, index) => {
     seriesOffsetByKey.set(metric.key, seriesOffsets[index])
   })
 
-  const tickCount = forecastLength
-  const tickIndexes =
-    tickCount <= 1
-      ? [0]
-      : Array.from({ length: tickCount }, (_, index) =>
-          Math.round((index * (forecastLength - 1)) / (tickCount - 1)),
-        )
-
-  const valuesGridStyle = {
-    ['--forecast-columns' as string]: String(Math.max(1, forecastLength)),
-  } as CSSProperties
+  const tickIndexes = buildTickIndexes(forecastLength)
+  const isFirstSlide = activeGroupIndex === 0
+  const isLastSlide = activeGroupIndex === chartGroups.length - 1
 
   return (
     <section className="weather-panel">
@@ -225,105 +279,136 @@ export default function WeatherForecastPanel({ weatherData }: WeatherForecastPan
       </div>
 
       <div className="weather-panel-chart" aria-label="Forecast chart">
-        {forecastLength === 0 ? (
-          <p className="weather-panel-empty">No forecast points after current weather.</p>
-        ) : (
-          <>
-            <div className="weather-panel-controls" aria-label="Graph variable toggles">
-              {metricConfig.map((metric) => (
-                <label key={`${metric.key}-toggle`} className="weather-panel-control-item">
-                  <input
-                    type="checkbox"
-                    checked={enabledMetrics[metric.key]}
-                    onChange={(event) => {
-                      const isChecked = event.target.checked
-                      setEnabledMetrics((previous) => ({
-                        ...previous,
-                        [metric.key]: isChecked,
-                      }))
-                    }}
-                    style={{ accentColor: metric.color }}
-                  />
-                  {/* <span className="weather-panel-control-color" style={{ backgroundColor: metric.color }} aria-hidden="true" /> */}
-                  <span style={{ color: metric.color }}>{metric.label} ({metric.unit})</span>
-                </label>
-              ))}
-            </div>
-
-            <svg
-              viewBox={`0 0 ${chartWidth} ${chartHeight}`}
-              className="weather-panel-chart-svg"
-              role="img"
-              aria-label="Forecast chart for temperature, apparent temperature, elevation, humidity, precipitation, wind speed, and visibility"
+        <div className="weather-panel-slider" aria-label="Forecast chart groups slider">
+          <div className="weather-panel-slider-top">
+            <button
+              type="button"
+              className="weather-panel-slider-button"
+              onClick={() => setActiveGroupIndex((value) => Math.max(0, value - 1))}
+              disabled={isFirstSlide}
             >
-              <line
-                x1={paddingLeft}
-                y1={chartHeight - paddingBottom}
-                x2={chartWidth - paddingRight}
-                y2={chartHeight - paddingBottom}
-                className="weather-panel-axis"
+              {'<'}
+            </button>
+            <div className="weather-panel-slider-title-wrap">
+              <h3 className="weather-panel-slider-title">{activeGroup.title}</h3>
+              <p className="weather-panel-slider-step">
+                {activeGroupIndex + 1} / {chartGroups.length}
+              </p>
+            </div>
+            <button
+              type="button"
+              className="weather-panel-slider-button"
+              onClick={() =>
+                setActiveGroupIndex((value) => Math.min(chartGroups.length - 1, value + 1))
+              }
+              disabled={isLastSlide}
+            >
+              {'>'}
+            </button>
+          </div>
+
+          <div className="weather-panel-slider-dots" aria-hidden="true">
+            {chartGroups.map((group, index) => (
+              <span
+                key={group.id}
+                className={`weather-panel-slider-dot ${index === activeGroupIndex ? 'is-active' : ''}`}
               />
+            ))}
+          </div>
 
-              {enabledSeries.map((metric) => {
-                const seriesOffset = seriesOffsetByKey.get(metric.key) ?? 0
+          {forecastLength === 0 ? (
+            <p className="weather-panel-empty">No forecast points after current weather.</p>
+          ) : (
+            <>
+              <svg
+                viewBox={`0 0 ${chartWidth} ${chartHeight}`}
+                className="weather-panel-chart-svg"
+                role="img"
+                aria-label={`${activeGroup.title} forecast chart`}
+              >
+                <line
+                  x1={paddingLeft}
+                  y1={chartHeight - paddingBottom}
+                  x2={chartWidth - paddingRight}
+                  y2={chartHeight - paddingBottom}
+                  className="weather-panel-axis"
+                />
 
-                return (
-                <g key={metric.key}>
-                  <polyline
-                    points={metric.points.map((point) => `${point.x},${point.y + seriesOffset}`).join(' ')}
-                    fill="none"
-                    stroke={metric.color}
-                    strokeWidth="2.5"
-                    strokeLinejoin="round"
-                    strokeLinecap="round"
-                    strokeDasharray={metric.dashArray}
-                  />
-                  {metric.points.map((point, index) => (
-                    <g key={`${metric.key}-${index}`}>
-                      <circle cx={point.x} cy={point.y + seriesOffset} r="2.8" fill={metric.color} />
+                {series.map((metric, seriesIndex) => {
+                  const seriesOffset = seriesOffsetByKey.get(metric.key) ?? 0
+                  const toneOpacity = getSeriesToneOpacity(seriesIndex)
+                  const labelY = labelTopStart + seriesIndex * labelRowStep
+
+                  return (
+                    <g key={metric.key}>
+                      <polyline
+                        points={metric.points
+                          .map((point) => `${point.x},${point.y + seriesOffset}`)
+                          .join(' ')}
+                        fill="none"
+                        stroke="var(--text-h)"
+                        strokeOpacity={toneOpacity}
+                        strokeWidth="5"
+                        strokeLinejoin="round"
+                        strokeLinecap="round"
+                        strokeDasharray={metric.dashArray}
+                      />
+                      {metric.points.map((point, index) => (
+                        <g key={`${metric.key}-${index}`}>
+                          {(() => {
+                            const labelText = formatValue(point.value)
+                            const labelWidth = Math.max(26, labelText.length * 8 + 8)
+
+                            return (
+                              <rect
+                                x={point.x - labelWidth / 2}
+                                y={labelY - 9}
+                                width={labelWidth}
+                                height={18}
+                                rx={4}
+                                className="weather-panel-point-label-bg"
+                              />
+                            )
+                          })()}
+                          <circle
+                            cx={point.x}
+                            cy={point.y + seriesOffset}
+                            r="5"
+                            fill="var(--text-h)"
+                            fillOpacity={toneOpacity}
+                          />
+                          <text
+                            x={point.x}
+                            y={labelY}
+                            textAnchor="middle"
+                            dominantBaseline="middle"
+                            className="weather-panel-point-label"
+                            fillOpacity={toneOpacity}
+                          >
+                            {formatValue(point.value)}
+                          </text>
+                        </g>
+                      ))}
                     </g>
-                  ))}
-                </g>
-                )
-              })}
+                  )
+                })}
 
-              {tickIndexes.map((tickIndex) => {
-                const x = paddingLeft + tickIndex * xStep
-                const y = 10 + chartHeight - paddingBottom
-                return (
-                  <g key={`tick-${tickIndex}`}>
-                    <line x1={x} y1={y} x2={x} y2={y + 6} className="weather-panel-axis" />
-                    <text x={x} y={y + 22} textAnchor="middle" className="weather-panel-x-label">
-                      {formatTime(forecast[tickIndex].time)}
-                    </text>
-                  </g>
-                )
-              })}
-            </svg>
-
-            {enabledSeries.length === 0 && (
-              <p className="weather-panel-empty">Enable at least one variable to show graph lines.</p>
-            )}
-
-            <div
-              className="weather-panel-values"
-              aria-label="Forecast values by metric"
-              style={valuesGridStyle}
-            >
-              {enabledSeries.map((metric) => (
-                <div key={`${metric.key}-values`} className="weather-panel-values-row">
-                  <div className="weather-panel-values-list" style={{ color: metric.color }}>
-                    {metric.points.map((point, index) => (
-                      <span key={`${metric.key}-value-${index}`} className="weather-panel-point-value">
-                        {formatValue(point.value)}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </>
-        )}
+                {tickIndexes.map((tickIndex) => {
+                  const x = paddingLeft + tickIndex * xStep
+                  const y = chartHeight - paddingBottom
+                  return (
+                    <g key={`tick-${tickIndex}`}>
+                      <line x1={x} y1={y} x2={x} y2={y + 6} className="weather-panel-axis" />
+                      <text x={x} y={y + 22} textAnchor="middle" className="weather-panel-x-label">
+                        {formatTime(forecast[tickIndex].time)}
+                      </text>
+                    </g>
+                  )
+                })}
+              </svg>
+            </>
+          )}
+        </div>
       </div>
     </section>
   )
