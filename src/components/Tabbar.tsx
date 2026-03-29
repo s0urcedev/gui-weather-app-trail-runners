@@ -3,6 +3,8 @@ import CloudWithSunIcon from './icons/CloudWithSunIcon'
 import ProfileIcon from './icons/ProfileIcon'
 import RouteIcon from './icons/RouteIcon'
 import './Tabbar.css'
+import CalWithTickIcon from './icons/CalWithTickIcon'
+import BellIcon from './icons/BellIcon'
 
 type TabConfig = {
     path: string
@@ -11,11 +13,11 @@ type TabConfig = {
 }
 
 const tabs: TabConfig[] = [
-    { path: '/', label: 'Home', icon: <CloudWithSunIcon size={24} strokeWidth={2.5} /> },
-    { path: '/about', label: 'About', icon: <ProfileIcon size={24} strokeWidth={2.5} /> },
-    { path: '/route', label: 'Route', icon: <RouteIcon size={24} strokeWidth={2.5} /> },
-    { path: '/route', label: 'Route', icon: <RouteIcon size={24} strokeWidth={2.5} /> },
-    { path: '/route', label: 'Route', icon: <RouteIcon size={24} strokeWidth={2.5} /> },
+    { path: '/routes', label: 'Routes', icon: <RouteIcon size={24} strokeWidth={2.5} /> },
+    { path: '/activities', label: 'Activities', icon: <CalWithTickIcon size={24} strokeWidth={2.5} /> },
+    { path: '/', label: 'Up Next', icon: <CloudWithSunIcon size={24} strokeWidth={3} /> },
+    { path: '/alerts', label: 'Alerts', icon: <BellIcon size={24} strokeWidth={2.5} /> },
+    { path: '/profile', label: 'Account', icon: <ProfileIcon size={24} strokeWidth={2.5} /> },
 ]
 
 export default function Tabbar() {
@@ -23,7 +25,7 @@ export default function Tabbar() {
 
   return (
         <div className="tabbar">
-            <div class="tabbar-inner">
+            <div className="tabbar-inner">
                 {tabs.map((tab) => {
                     const isActive = location.pathname === tab.path
                     return (
