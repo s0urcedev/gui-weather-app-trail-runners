@@ -3,8 +3,18 @@ import CalWithTickIcon from '../components/icons/CalWithTickIcon';
 import { ImportGPXButton } from '../components/ImportGPXButton';
 import { ImportPlaceholder } from '../components/ImportPlaceholder';
 import { Link } from 'react-router-dom';
+import { useState } from 'react'
 
 function ActivitiesPage() {
+  // example gpx file:
+  const [gpxData, setGpxData] = useState<string | null>(null);
+  useState(() => {
+    fetch('src/assets/fells_loop.gpx')
+      .then(response => response.text())
+      .then(data => setGpxData(data))
+      .catch(error => console.error('Failed to load GPX file:', error));
+  });
+
   return (
     <div className="App">
       <h1>Completed Activities</h1>
@@ -24,6 +34,7 @@ function ActivitiesPage() {
             height={12}
             time={12}
             activityID="001"
+            gpxData={gpxData}
         />
         <ActivityItem
             name="Tue 17 Feb 2026, 6:00PM - 6:13PM"
@@ -33,6 +44,7 @@ function ActivitiesPage() {
             height={12}
             time={12}
             activityID="002"
+            gpxData={gpxData}
         />
     </div>
       

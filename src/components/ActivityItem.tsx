@@ -2,6 +2,7 @@ import './ActivityItem.css'
 import ClockIcon from './icons/ClockIcon'
 import HorizontalArrowsIcon from './icons/HorizontalArrowsIcon'
 import LineUpwardIcon from './icons/LineUpwardIcon'
+import RouteMinimap from './RouteMinimap'
 
 type ActivityItemProps = {
 	name: string
@@ -11,9 +12,10 @@ type ActivityItemProps = {
 	height: number
 	time: number
 	activityID: string | number
+	gpxData: File | string | ArrayBuffer | null | undefined
 }
 
-export function ActivityItem({ name, trailID, trailName, distance, height, time, activityID }: ActivityItemProps) {
+export function ActivityItem({ name, trailID, trailName, distance, height, time, activityID, gpxData }: ActivityItemProps) {
 	return (
 		<article className="activity-item" aria-label={`Activity ${name}`}>
 			<div className="activity-item-main">
@@ -40,6 +42,9 @@ export function ActivityItem({ name, trailID, trailName, distance, height, time,
 				</div>
 
 				<div className="activity-item-map-holder" aria-label={`Activity ID ${activityID}`}>
+                    <RouteMinimap 
+                        gpxData={gpxData}
+                    />
 				</div>
 			</div>
 

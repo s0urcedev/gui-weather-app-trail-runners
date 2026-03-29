@@ -1,3 +1,4 @@
+import RouteMinimap from './RouteMinimap'
 import './TrailItem.css'
 import ClockIcon from './icons/ClockIcon'
 import HorizontalArrowsIcon from './icons/HorizontalArrowsIcon'
@@ -11,9 +12,10 @@ type TrailItemProps = {
     time: number
     trailID: string | number
     showViewBtn?: boolean
+	gpxData: File | string | ArrayBuffer | null | undefined
 }
 
-export function TrailItem({ name, location, distance, height, time, trailID, showViewBtn = true }: TrailItemProps) {
+export function TrailItem({ name, location, distance, height, time, trailID, showViewBtn = true, gpxData }: TrailItemProps) {
     return (
         <article className="trail-item" aria-label={`Trail ${name}`}>
             <div className="trail-item-main">
@@ -41,6 +43,9 @@ export function TrailItem({ name, location, distance, height, time, trailID, sho
                 </div>
 
                 <div className="trail-item-map-holder" aria-label={`Trail ID ${trailID}`}>
+                    <RouteMinimap 
+                        gpxData={gpxData}
+                    />
                 </div>
             </div>
 

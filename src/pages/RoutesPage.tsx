@@ -7,6 +7,14 @@ import { TrailItem } from '../components/TrailItem';
 
 function RoutesPage() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  // example gpx file:
+  const [gpxData, setGpxData] = useState<string | null>(null);
+  useState(() => {
+    fetch('src/assets/fells_loop.gpx')
+      .then(response => response.text())
+      .then(data => setGpxData(data))
+      .catch(error => console.error('Failed to load GPX file:', error));
+  });
 
   const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -38,6 +46,7 @@ function RoutesPage() {
           height={12}
           time={12}
           trailID="001"
+          gpxData={gpxData}
         />
         <TrailItem
           name="Unnamed Trail #1"
@@ -46,6 +55,7 @@ function RoutesPage() {
           height={12}
           time={12}
           trailID="001"
+          gpxData={gpxData}
         />
       </div>
 
