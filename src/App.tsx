@@ -4,6 +4,7 @@ import HomePage from './pages/HomePage'
 import RoutesPage from './pages/RoutesPage'
 import Tabbar from './components/Tabbar'
 import './App.css'
+import ActivitiesPage from './pages/ActivitiesPage'
 
 function App() {
   return (
@@ -15,6 +16,7 @@ function App() {
       }}>
         <Routes>
           <Route path="/routes" element={<RoutesPage />} />
+          <Route path="/activities" element={<ActivitiesPage />} />
           <Route path="/" element={<HomePage />} />
           <Route path="/about" element={<AboutPage />} />
           <Route path="*" element={<h1>404</h1>} />
