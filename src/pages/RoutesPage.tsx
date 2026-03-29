@@ -1,7 +1,9 @@
 import { useState } from 'react'
 import type { ChangeEvent } from 'react'
+import { ImportGPXButton } from '../components/ImportGPXButton';
+import RouteIcon from '../components/icons/RouteIcon';
 
-function RoutePage() {
+function RoutesPage() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
@@ -23,7 +25,8 @@ function RoutePage() {
 
   return (
     <div className="App">
-      <h2>Strava Route Import</h2>
+      <h1>Trail Routes</h1>
+      <ImportGPXButton text="Import Routes" icon={<RouteIcon />} />
 
       <div className="Upload-Container">
         <input type="file" accept=".gpx" onChange={handleFileChange}/>
@@ -35,4 +38,4 @@ function RoutePage() {
   )
 }
 
-export default RoutePage
+export default RoutesPage
