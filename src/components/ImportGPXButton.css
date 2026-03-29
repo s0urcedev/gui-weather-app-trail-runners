@@ -1,0 +1,49 @@
+.import-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: max(fit-content, 900px);
+    color: rgba(255,255,255,1);
+    background-color: rgba(0,0,0,1);
+    border: solid;
+    border-color: rgba(255,255,255,0.4);
+    border-width: 1px;
+    border-radius: 8px;
+    padding: 7px 8px;
+    cursor: pointer;
+    transition: opacity 0.2s, width 1s;
+    @media (max-width: 1024px) {
+        width: 100%;
+    }
+}
+.import-btn:hover {
+    opacity: 0.5;
+}
+
+.import-btn-icon {
+    height: 26px;
+    width: 26px;
+    padding-left: 2px;
+    padding-right: 2px;
+}
+
+.import-btn-text {
+    line-height: 1;
+    font-size: 23px;
+    @media (max-width: 1024px) {
+        font-size: 20px;
+    }
+}
+
+.import-btn-format {
+    height: 23px;
+    @media (max-width: 1024px) {
+        height: 20px;
+    }
+    display: flex;
+    align-items: flex-end;
+    justify-content: flex-end;
+    text-align: end;
+    margin-left: 3px;
+    font-weight: 600;
+}
