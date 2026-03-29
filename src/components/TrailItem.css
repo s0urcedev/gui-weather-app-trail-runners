@@ -51,6 +51,10 @@
   width: 150px;
 }
 
+.trail-item-metrics-bottom-margin {
+  margin-bottom: 10px;
+}
+
 .trail-item-metric {
   display: inline-flex;
   align-items: center;

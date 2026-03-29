@@ -131,3 +131,24 @@ code {
   gap: 10px;
   margin-top: 10px;
 }
+
+.backBtn {
+  transition: opacity 0.25s;
+}
+.backBtn:hover {
+  opacity: 0.5;
+}
+
+.deleteBtn {
+  transition: opacity 0.25s;
+}
+.deleteBtn:hover {
+  opacity: 0.5;
+}
+
+.openBtn {
+  transition: opacity 0.25s;
+}
+.openBtn:hover {
+  opacity: 0.5;
+}

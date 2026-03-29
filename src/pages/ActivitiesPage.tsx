@@ -2,12 +2,18 @@ import { ActivityItem } from '../components/ActivityItem';
 import CalWithTickIcon from '../components/icons/CalWithTickIcon';
 import { ImportGPXButton } from '../components/ImportGPXButton';
 import { ImportPlaceholder } from '../components/ImportPlaceholder';
+import { Link } from 'react-router-dom';
 
 function ActivitiesPage() {
   return (
     <div className="App">
       <h1>Completed Activities</h1>
       <ImportGPXButton text="Import Completed Activities" icon={<CalWithTickIcon />} />
+      <p style={{ margin: '8px 0 12px' }}>
+        <Link to="/routes/001" state={{ fromPath: '/activities' }}>
+          Open Trail #001 (Test)
+        </Link>
+      </p>
       
     <div className="items-list">
         <ActivityItem

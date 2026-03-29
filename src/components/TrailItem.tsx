@@ -10,9 +10,10 @@ type TrailItemProps = {
     height: number
     time: number
     trailID: string | number
+    showViewBtn?: boolean
 }
 
-export function TrailItem({ name, location, distance, height, time, trailID }: TrailItemProps) {
+export function TrailItem({ name, location, distance, height, time, trailID, showViewBtn = true }: TrailItemProps) {
     return (
         <article className="trail-item" aria-label={`Trail ${name}`}>
             <div className="trail-item-main">
@@ -20,7 +21,10 @@ export function TrailItem({ name, location, distance, height, time, trailID }: T
                     <h3 className="trail-item-name">{name}</h3>
                     {/* <p className="trail-item-location">{location}</p> */}
 
-                    <div className="trail-item-metrics" aria-label="Trail stats">
+                    <div
+                        className={`trail-item-metrics${showViewBtn ? '' : ' trail-item-metrics-bottom-margin'}`}
+                        aria-label="Trail stats"
+                    >
                         <div className="trail-item-metric">
                             <HorizontalArrowsIcon size={16} className="trail-item-metric-icon" />
                             <span>{distance} km</span>
@@ -40,9 +44,9 @@ export function TrailItem({ name, location, distance, height, time, trailID }: T
                 </div>
             </div>
 
-            <a className="trail-item-link" href={`/routes/${trailID}`}>
+            {showViewBtn && <a className="trail-item-link" href={`/routes/${trailID}`}>
                 View
-            </a>
+            </a>}
         </article>
     )
 }
