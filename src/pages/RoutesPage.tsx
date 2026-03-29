@@ -3,6 +3,7 @@ import type { ChangeEvent } from 'react'
 import { ImportGPXButton } from '../components/ImportGPXButton';
 import RouteIcon from '../components/icons/RouteIcon';
 import { ImportPlaceholder } from '../components/ImportPlaceholder';
+import { TrailItem } from '../components/TrailItem';
 
 function RoutesPage() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -28,6 +29,25 @@ function RoutesPage() {
     <div className="App">
       <h1>Trail Routes</h1>
       <ImportGPXButton text="Import Routes" icon={<RouteIcon />} />
+
+      <div className="items-list">
+        <TrailItem
+          name="Unnamed Trail #1"
+          location="Paris, France"
+          distance={3.2}
+          height={12}
+          time={12}
+          trailID="001"
+        />
+        <TrailItem
+          name="Unnamed Trail #1"
+          location="Paris, France"
+          distance={3.2}
+          height={12}
+          time={12}
+          trailID="001"
+        />
+      </div>
 
       <div className="Upload-Container">
         <input type="file" accept=".gpx" onChange={handleFileChange}/>

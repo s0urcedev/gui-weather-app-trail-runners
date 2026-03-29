@@ -124,3 +124,10 @@ code {
   padding: 4px 8px;
   background: var(--code-bg);
 }
+
+.items-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 10px;
+}
