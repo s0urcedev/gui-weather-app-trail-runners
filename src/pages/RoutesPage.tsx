@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom';
 import type { ChangeEvent } from 'react'
 import { ImportGPXButton } from '../components/ImportGPXButton';
@@ -11,14 +11,29 @@ function RoutesPage() {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const navigate = useNavigate();
   
-  // example gpx file:
-  const [gpxData, setGpxData] = useState<string | null>(null);
-  useState(() => {
-    fetch('src/assets/fells_loop.gpx')
-      .then(response => response.text())
-      .then(data => setGpxData(data))
-      .catch(error => console.error('Failed to load GPX file:', error));
-  });
+  // State for pop up to name file
+  const [showPopUp, setShowPopUp] = useState(false);
+  const [routeName, setRouteName] = useState('');
+
+  // Temporarily hold data while file name is entered
+  const [tempRouteData, setTempRouteData] = useState<{
+    coordinates: { latitude: number; longitude: number }[];
+    gpxText: string;
+  } | null>(null);
+
+  // Hold saved routes for the list
+  const [savedRouteList, setSavedRouteList] = useState<any[]>([]);
+
+  useEffect(() => {
+    const storedRoutes = localStorage.getItem('savedRoutes');
+    if (storedRoutes) {
+      try {
+        setSavedRouteList(JSON.parse(storedRoutes));
+      } catch (error) {
+        console.error('Failed to parse saved routes from localStorage:', error);
+      }
+    }
+    }, []);
 
   // Trigger hidden input when button is clicked
   const handleImportClick = (e: React.MouseEvent) => {
@@ -39,9 +54,9 @@ function RoutesPage() {
       const parser = new DOMParser();
       const xmlDoc = parser.parseFromString(gpxText, "text/xml");
       const trackPoints = [
-        ...xmlDoc.getElementsByTagName("trkpt"),
-        ...xmlDoc.getElementsByTagName("wpt"),
-        ...xmlDoc.getElementsByTagName("rtept")
+        ...Array.from(xmlDoc.getElementsByTagName("trkpt")),
+        ...Array.from(xmlDoc.getElementsByTagName("wpt")),
+        ...Array.from(xmlDoc.getElementsByTagName("rtept"))
       ];
 
       const allCoordinates = [];
@@ -51,18 +66,72 @@ function RoutesPage() {
         allCoordinates.push({ latitude: lat, longitude: lon });
       }
       
-      // Send user to RouteTrailIdPage with the parsed GPX data
-      navigate('/routes/new-route', {
-        state: {
-          fromPath: '/routes',
-          coordinates: allCoordinates,
-          routeName: file.name.replace('.gpx', ''),
-          gpxData: gpxText
-        }
-      });
+      // Temporarily store the parsed data
+      setTempRouteData({ coordinates: allCoordinates, gpxText });
+      
+      // Temporarily set route name to file name without extension
+      setRouteName(file.name.replace('.gpx', ''));
+    
+      setShowPopUp(true);
+
     };
     reader.readAsText(file!);
     event.target.value = '';
+  };
+
+  const handleSaveRoute = () => {
+    const cleanedName = routeName.trim();
+    if (!cleanedName) {
+      alert('Please enter a valid route name.');
+      return;
+    }
+    if (!tempRouteData) return;
+
+    // Fetch exisitng routes from localStorage and append the new route
+    const existingRouteStr = localStorage.getItem('savedRoutes');
+    let exisitngRoutes: any[] = [];
+
+    if (existingRouteStr) {
+      try {
+        exisitngRoutes = JSON.parse(existingRouteStr);
+      } catch (error) {
+        console.error('Failed to parse existing routes from localStorage:', error);
+      }
+    }
+
+    // Check if a route with the same name already exists
+    const isDuplicate = exisitngRoutes.some(route => route.name && route.name.toLowerCase() === cleanedName.toLowerCase());
+
+    if (isDuplicate) {
+      alert('A route with this name already exists. Please choose a different name.');
+      return;
+    }
+
+    // Create a new object with unique ID
+    const newTrailID = Date.now().toString();
+    const newRouteObject = {
+      id: newTrailID,
+      name: cleanedName,
+      coordinates: tempRouteData.coordinates,
+      gpxData: tempRouteData.gpxText
+    }
+
+    // Append the new route to the existing routes and save back to localStorage
+    exisitngRoutes.push(newRouteObject);
+    localStorage.setItem('savedRoutes', JSON.stringify(exisitngRoutes));
+
+    // Close pop up
+    setShowPopUp(false);
+
+    // Send user to RouteTrailIdPage with the parsed GPX data
+    navigate(`/routes/${newTrailID}`, {
+      state: {
+        fromPath: '/routes',
+        coordinates: tempRouteData.coordinates,
+        routeName: cleanedName,
+        gpxData: tempRouteData.gpxText
+      }
+    });
   };
 
   return (
@@ -75,27 +144,59 @@ function RoutesPage() {
       <input type="file" accept=".gpx" ref={fileInputRef} style={{display: 'none' }} onChange={handleFileChange}/>
 
       <div className="items-list">
-        <TrailItem
-          name="Unnamed Trail #1"
-          location="Paris, France"
-          distance={3.2}
-          height={12}
-          time={12}
-          trailID="001"
-          gpxData={gpxData}
-        />
-        <TrailItem
-          name="Unnamed Trail #1"
-          location="Paris, France"
-          distance={3.2}
-          height={12}
-          time={12}
-          trailID="001"
-          gpxData={gpxData}
-        />
+        {/* Loop through saved routes and display them*/}
+        {savedRouteList.map((route) => (
+          <TrailItem
+            key={route.id}
+            name={route.name}
+            location="Uploaded Route"
+            distance={0}
+            height={0}
+            time={0}
+            trailID={route.id}
+            gpxData={route.gpxData}
+          />
+        ))}
       </div>
 
       <ImportPlaceholder icon={<RouteIcon />} text="Import a route to see it here" />
+
+      {showPopUp && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh',
+          backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000
+        }}>
+          <div style={{
+            backgroundColor: 'white', padding: '24px', borderRadius: '12px', width: '90%', maxWidth: '350px',
+            display: 'flex', flexDirection: 'column', gap: '15px', color: 'black', boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
+          }}>
+            <h3 style={{ margin: 0, fontSize: '1.25rem' }}>Name Your Route</h3>
+            <p style={{ margin: 0, fontSize: '0.9rem', color: '#666' }}>Give this trail a unique name to save it to your list.</p>
+            <input 
+              type="text" 
+              value={routeName} 
+              onChange={(e) => setRouteName(e.target.value)}
+              placeholder="e.g. Sunday Long Run"
+              style={{ padding: '10px', fontSize: '16px', borderRadius: '6px', border: '1px solid #ccc', outline: 'none' }}
+              autoFocus
+            />
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '10px' }}>
+              <button 
+                onClick={() => setShowPopUp(false)} 
+                style={{ background: 'transparent', color: '#666', border: 'none', cursor: 'pointer', padding: '8px 16px', fontWeight: '500' }}
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={handleSaveRoute} 
+                style={{ background: '#2563eb', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '6px', cursor: 'pointer', fontWeight: '500' }}
+              >
+                Save Route
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
