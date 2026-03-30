@@ -132,7 +132,7 @@ export default function WeatherForecastPanel({ weatherData }: WeatherForecastPan
   }
 
   const current = weatherData[0]
-  const forecast = weatherData.slice(1)
+  const forecast = weatherData.slice(0)
   const equipmentRecommendation = recommendEquipmentForWeather(weatherData)
   const activeGroup = chartGroups[activeGroupIndex]
   const duration = 0.25*(weatherData.length-1)
