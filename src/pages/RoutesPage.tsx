@@ -198,6 +198,7 @@ function RoutesPage() {
             time={route.time || 0}
             trailID={route.id}
             gpxData={route.gpxData}
+            coordinates = {route.coordinates}
           />
         ))}
       </div>

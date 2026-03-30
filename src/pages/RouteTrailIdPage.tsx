@@ -60,6 +60,8 @@ function RouteTrailIdPage() {
   const [weatherData, setWeatherData] = useState<any[] | null>(null);
   // default pace set to 6 min/KM
   const [pace, setPace] = useState<number>(6);
+  const [paceSec, setPaceSec] = useState<number>(0);
+  const totalPaceInMinutes = pace + (paceSec / 60);
 
   let totalDistance = 0;
   let totalElevation = 0;
@@ -80,7 +82,7 @@ function RouteTrailIdPage() {
     const points15Min = []; // Filtered coordinates will be saved here
     let accumulatedDistance = 0;
 
-    const distancePer15Mins = 15 / pace; // Distance covered in 15 minutes at the given pace
+    const distancePer15Mins = 15 / totalPaceInMinutes; // Distance covered in 15 minutes at the given pace
     points15Min.push(routeCoordinates[0]); // first coordinate
 
     for (let i = 1; i < routeCoordinates.length; i++) {
@@ -151,7 +153,7 @@ function RouteTrailIdPage() {
             location="Uploaded File"
             distance={Number(totalDistance.toFixed(2))}
             height={Math.round(totalElevation)}
-            time={Math.round(totalDistance * pace)}
+            time={Math.round(totalDistance * totalPaceInMinutes)}
             trailID="new"
             showViewBtn={false}
             gpxData={gpxData}
@@ -164,10 +166,18 @@ function RouteTrailIdPage() {
               <input 
                 type="number" 
                 value={pace} 
-                onChange={(e) => setPace(Number(e.target.value))} // Updates the pace state as they type
-                style={{ marginLeft: '10px', width: '60px', padding: '5px' }}
+                onChange={(e) => setPace(Number(e.target.value))} 
+                style={{ marginLeft: '10px', width: '50px', padding: '5px' }}
                 min="1"
-              />
+              /> min
+              <input 
+                type="number" 
+                value={paceSec} 
+                onChange={(e) => setPaceSec(Number(e.target.value))} 
+                style={{ marginLeft: '5px', width: '50px', padding: '5px' }}
+                min="0"
+                max="59"
+              /> sec
             </label>
             <button 
               onClick={handleCalculateWeather}

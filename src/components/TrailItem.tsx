@@ -3,6 +3,7 @@ import './TrailItem.css'
 import ClockIcon from './icons/ClockIcon'
 import HorizontalArrowsIcon from './icons/HorizontalArrowsIcon'
 import LineUpwardIcon from './icons/LineUpwardIcon'
+import { Link } from 'react-router-dom';
 
 type TrailItemProps = {
     name: string
@@ -13,9 +14,10 @@ type TrailItemProps = {
     trailID: string | number
     showViewBtn?: boolean
 	gpxData: File | string | ArrayBuffer | null | undefined
+    coordinates?: { latitude: number; longitude: number, elevation?: number }[]
 }
 
-export function TrailItem({ name, location, distance, height, time, trailID, showViewBtn = true, gpxData }: TrailItemProps) {
+export function TrailItem({ name, location, distance, height, time, trailID, showViewBtn = true, gpxData, coordinates }: TrailItemProps) {
     return (
         <article className="trail-item" aria-label={`Trail ${name}`}>
             <div className="trail-item-main">
@@ -48,10 +50,20 @@ export function TrailItem({ name, location, distance, height, time, trailID, sho
                     />
                 </div>
             </div>
-
-            {showViewBtn && <a className="trail-item-link" href={`/routes/${trailID}`}>
-                View
-            </a>}
+            {showViewBtn && (
+                <Link 
+                    className="trail-item-link" 
+                    to={`/routes/${trailID}`}
+                    state={{
+                        fromPath: '/routes',
+                        coordinates: coordinates,
+                        routeName: name,
+                        gpxData: gpxData
+                    }}
+                >
+                    View
+                </Link>
+            )}
         </article>
     )
 }
