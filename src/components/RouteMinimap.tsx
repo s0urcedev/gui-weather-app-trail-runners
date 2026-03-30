@@ -70,7 +70,7 @@ function parseGpxTrackPoints(gpxXml: string): LatLngTuple[] {
 		throw new Error('Invalid GPX XML content.')
 	}
 
-	const pointElements = xmlDoc.querySelectorAll('trkpt, rtept')
+	const pointElements = xmlDoc.querySelectorAll('trkpt, rtept, wpt')
 	const points: LatLngTuple[] = []
 
 	pointElements.forEach((pointElement) => {
@@ -142,11 +142,11 @@ export default function RouteMinimap({
 
 				setParseState({ points, loading: false, error: null })
 			})
-			.catch(() => {
+			.catch((err) => {
 				if (cancelled) {
 					return
 				}
-
+				console.error('RouteMinimap parse error:', err)
 				setParseState({
 					points: [],
 					loading: false,
