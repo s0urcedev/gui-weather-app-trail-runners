@@ -9,7 +9,7 @@ import WeatherForecastPanel from '../components/WeatherForecastPanel'
 type RouteLocationState = {
   fromPath?: string;
   // Data passed from RoutesPage
-  coordinates?: { latitude: number; longitude: number }[];
+  coordinates?: { latitude: number; longitude: number; elevation?: number }[];
   routeName?: string; // Added routeName property
   gpxData?: any; // Added gpxData property
 }
@@ -62,11 +62,15 @@ function RouteTrailIdPage() {
   const [pace, setPace] = useState<number>(6);
 
   let totalDistance = 0;
+  let totalElevation = 0;
   for (let i = 1; i < routeCoordinates.length; i++) {
     totalDistance += getDistanceFromLatLon(
       routeCoordinates[i-1].latitude, routeCoordinates[i-1].longitude,
       routeCoordinates[i].latitude, routeCoordinates[i].longitude
       );
+    
+    totalElevation += Math.max(0, (routeCoordinates[i].elevation || 0)- (routeCoordinates[i-1].elevation || 0));
+
     }
 
   // Calculate 15 minute intervals
@@ -146,7 +150,7 @@ function RouteTrailIdPage() {
             name={routeName}
             location="Uploaded File"
             distance={Number(totalDistance.toFixed(2))}
-            height={0}
+            height={Math.round(totalElevation)}
             time={Math.round(totalDistance * pace)}
             trailID="new"
             showViewBtn={false}

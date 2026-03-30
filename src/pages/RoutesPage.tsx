@@ -6,6 +6,19 @@ import RouteIcon from '../components/icons/RouteIcon';
 import { ImportPlaceholder } from '../components/ImportPlaceholder';
 import { TrailItem } from '../components/TrailItem';
 
+// Formula to calculate distance between two coordinates (Haversine formula)
+function getDistanceFromLatLon(lat1: number, lon1: number, lat2: number, lon2: number): number {
+  const R = 6371; // Radius of the Earth in km
+  const dLat = (lat2 - lat1) * (Math.PI / 180);
+  const dLon = (lon2 - lon1) * (Math.PI / 180);
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(lat1 * (Math.PI / 180)) * Math.cos(lat2 * (Math.PI / 180)) *
+    Math.sin(dLon / 2) * Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
+}
+
 function RoutesPage() {
   // Reference for hidden file input
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -14,26 +27,35 @@ function RoutesPage() {
   // State for pop up to name file
   const [showPopUp, setShowPopUp] = useState(false);
   const [routeName, setRouteName] = useState('');
+  const [routeDate, setRouteDate] = useState('');
 
   // Temporarily hold data while file name is entered
   const [tempRouteData, setTempRouteData] = useState<{
-    coordinates: { latitude: number; longitude: number }[];
+    coordinates: { latitude: number; longitude: number, elevation: number }[];
     gpxText: string;
   } | null>(null);
 
   // Hold saved routes for the list
   const [savedRouteList, setSavedRouteList] = useState<any[]>([]);
 
+  // Load GPX data
   useEffect(() => {
     const storedRoutes = localStorage.getItem('savedRoutes');
     if (storedRoutes) {
       try {
-        setSavedRouteList(JSON.parse(storedRoutes));
-      } catch (error) {
-        console.error('Failed to parse saved routes from localStorage:', error);
-      }
+        const allRoutes = JSON.parse(storedRoutes);
+        // Keep only the routes that have valid GPX data
+        const upcomingRoutes = allRoutes.filter((route: any) => {
+          if (!route.date) return true;
+          return new Date(route.date).getTime() >= new Date().setHours(0, 0, 0, 0);
+      });
+
+      setSavedRouteList(upcomingRoutes);
+    } catch (error) {
+      console.error('Failed to parse saved routes from localStorage:', error);
     }
-    }, []);
+  }
+}, []);
 
   // Trigger hidden input when button is clicked
   const handleImportClick = (e: React.MouseEvent) => {
@@ -63,7 +85,9 @@ function RoutesPage() {
       for (let i = 0; i < trackPoints.length; i++) {
         const lat = parseFloat(trackPoints[i].getAttribute("lat") || "0");
         const lon = parseFloat(trackPoints[i].getAttribute("lon") || "0");
-        allCoordinates.push({ latitude: lat, longitude: lon });
+        const eleTag = trackPoints[i].getElementsByTagName("ele")[0];
+        const ele = eleTag && eleTag.textContent ? parseFloat(eleTag.textContent) : 0;
+        allCoordinates.push({ latitude: lat, longitude: lon, elevation: ele });
       }
       
       // Temporarily store the parsed data
@@ -107,11 +131,30 @@ function RoutesPage() {
       return;
     }
 
+    // Calculate distance and time
+    let totalDist = 0;
+    let totalElevationGain = 0;
+    for (let i = 1; i < tempRouteData.coordinates.length; i++) {
+      totalDist += getDistanceFromLatLon(
+        tempRouteData.coordinates[i-1].latitude, tempRouteData.coordinates[i-1].longitude,
+        tempRouteData.coordinates[i].latitude, tempRouteData.coordinates[i].longitude
+      );
+      const elevationDiff = tempRouteData.coordinates[i].elevation - tempRouteData.coordinates[i-1].elevation;
+      if (elevationDiff > 0) {
+        totalElevationGain += elevationDiff;
+      }
+    }
+    const estimatedTime = Math.round(totalDist * 6);
+
     // Create a new object with unique ID
     const newTrailID = Date.now().toString();
     const newRouteObject = {
       id: newTrailID,
       name: cleanedName,
+      date: routeDate,
+      distance: Number(totalDist.toFixed(2)),
+      time: estimatedTime, 
+      height: Math.round(totalElevationGain),
       coordinates: tempRouteData.coordinates,
       gpxData: tempRouteData.gpxText
     }
@@ -149,10 +192,10 @@ function RoutesPage() {
           <TrailItem
             key={route.id}
             name={route.name}
-            location="Uploaded Route"
-            distance={0}
-            height={0}
-            time={0}
+            location={route.date ? new Date(route.date).toLocaleDateString() : 'Upcoming Route'}
+            distance={route.distance || 0}
+            height={route.height || 0}
+            time={route.time || 0}
             trailID={route.id}
             gpxData={route.gpxData}
           />
@@ -179,6 +222,14 @@ function RoutesPage() {
               placeholder="e.g. Sunday Long Run"
               style={{ padding: '10px', fontSize: '16px', borderRadius: '6px', border: '1px solid #ccc', outline: 'none' }}
               autoFocus
+            />
+
+            <label style={{ fontSize: '0.9rem', color: '#666', marginBottom: '-10px', marginTop: '10px' }}>Planned Date (Optional):</label>
+            <input 
+              type="date" 
+              value={routeDate} 
+              onChange={(e) => setRouteDate(e.target.value)} 
+              style={{ padding: '10px', fontSize: '16px', borderRadius: '6px', border: '1px solid #ccc' }} 
             />
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '10px' }}>
               <button 
