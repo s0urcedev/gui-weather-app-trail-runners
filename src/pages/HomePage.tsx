@@ -31,7 +31,7 @@ export default function HomePage() {
 
     try {
       const coords = await getCoordinatesFromLocation(trimmedLocation)
-      const nextWeather = await fetchWeatherByCoordinatesMinutely15(Array(12).fill(coords));
+      const nextWeather = await fetchWeatherByCoordinatesMinutely15(Array(13).fill(coords));
       setWeather(nextWeather)
     } catch (caughtError) {
       const message = caughtError instanceof Error ? caughtError.message : 'Failed to fetch weather.'
@@ -48,7 +48,7 @@ export default function HomePage() {
 
     try {
       const coords = await getUserCoordinates()
-      const nextWeather = await fetchWeatherByCoordinatesMinutely15(Array(12).fill(coords));
+      const nextWeather = await fetchWeatherByCoordinatesMinutely15(Array(13).fill(coords));
       setWeather(nextWeather)
     } catch (caughtError) {
       const message = caughtError instanceof Error ? caughtError.message : 'Failed to fetch weather.'

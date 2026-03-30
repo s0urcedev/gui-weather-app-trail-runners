@@ -1,5 +1,6 @@
 import type { WeatherData } from '../scripts/weather'
 import { useState } from 'react'
+import { recommendEquipmentForWeather } from '../scripts/equipmentRecommend'
 import './WeatherForecastPanel.css'
 
 type WeatherForecastPanelProps = {
@@ -132,7 +133,11 @@ export default function WeatherForecastPanel({ weatherData }: WeatherForecastPan
 
   const current = weatherData[0]
   const forecast = weatherData.slice(1)
+  const equipmentRecommendation = recommendEquipmentForWeather(weatherData)
   const activeGroup = chartGroups[activeGroupIndex]
+  const duration = 0.25*(weatherData.length-1)
+  const durationHours = Math.floor(duration)
+  const durationMinutes = Math.round((duration - durationHours) * 60).toString().padStart(2, '0')
 
   const chartWidth = 960
   const chartHeight = 380
@@ -274,6 +279,46 @@ export default function WeatherForecastPanel({ weatherData }: WeatherForecastPan
           </div>
           <div>
             <div>Time:</div><div><strong>{formatTime(current.time)}</strong></div>
+          </div>
+        </div>
+
+        <div className="weather-panel-recommendations" aria-label="Equipment recommendations">
+          <h4 className="weather-panel-recommendations-title">Equipment recommendations (for the next {durationHours}:{durationMinutes} hours)</h4>
+
+          {/* {equipmentRecommendation.conditions.length > 0 && (
+            <ul className="weather-panel-recommendations-conditions">
+              {equipmentRecommendation.conditions.map((condition, index) => (
+                <li key={`${condition}-${index}`}>{condition}</li>
+              ))}
+            </ul>
+          )} */}
+
+          <div className="weather-panel-recommendations-groups">
+            <div>
+              <p className="weather-panel-recommendations-subtitle">Must-have</p>
+              {equipmentRecommendation.mustHave.length === 0 ? (
+                <p className="weather-panel-recommendations-empty">No must-have items.</p>
+              ) : (
+                <ul className="weather-panel-recommendations-list">
+                  {equipmentRecommendation.mustHave.map((item) => (
+                    <li key={item.id}>{item.label}</li>
+                  ))}
+                </ul>
+              )}
+            </div>
+
+            <div>
+              <p className="weather-panel-recommendations-subtitle">Nice-to-have</p>
+              {equipmentRecommendation.niceToHave.length === 0 ? (
+                <p className="weather-panel-recommendations-empty">No nice-to-have items.</p>
+              ) : (
+                <ul className="weather-panel-recommendations-list">
+                  {equipmentRecommendation.niceToHave.map((item) => (
+                    <li key={item.id}>{item.label}</li>
+                  ))}
+                </ul>
+              )}
+            </div>
           </div>
         </div>
       </div>
