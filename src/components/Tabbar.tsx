@@ -14,10 +14,8 @@ type TabConfig = {
 
 const tabs: TabConfig[] = [
     { path: '/routes', label: 'Routes', icon: <RouteIcon size={24} strokeWidth={2.5} /> },
-    { path: '/activities', label: 'Activities', icon: <CalWithTickIcon size={24} strokeWidth={2.5} /> },
     { path: '/', label: 'Up Next', icon: <CloudWithSunIcon size={24} strokeWidth={3} /> },
     { path: '/alerts', label: 'Alerts', icon: <BellIcon size={24} strokeWidth={2.5} /> },
-    { path: '/profile', label: 'Account', icon: <ProfileIcon size={24} strokeWidth={2.5} /> },
 ]
 
 export default function Tabbar() {
