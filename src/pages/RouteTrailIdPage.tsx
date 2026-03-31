@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useLocation, useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import { TrailItem } from '../components/TrailItem'
 import { PastActivityItem } from '../components/PastActivityItem'
 import BackArrowHeadIcon from '../components/icons/BackArrowHeadIcon'
@@ -47,9 +47,28 @@ function getReferrerPath(referrer: string): string | undefined {
 }
 
 function RouteTrailIdPage() {
+  const {trailID} = useParams();
   const location = useLocation()
   const navigate = useNavigate()
   const locationState = location.state as RouteLocationState | null
+
+  // Delete function for trail
+  const handleDelete = () => {
+    const confirmDelete = window.confirm("Are you sure you want to delete this trail?")
+    if (!confirmDelete) return;
+
+    const storedRoutes = localStorage.getItem('savedRoutes');
+    if (storedRoutes && trailID) {
+      let routes = JSON.parse(storedRoutes);
+      // Filter out trails that match the current trailID
+      routes = routes.filter((route: any) => route.id !== trailID);
+      // Update memory with new routes
+      localStorage.setItem('savedRoutes', JSON.stringify(routes));
+
+      // Send user back to the main route page
+      navigate('/routes');
+    }
+  };
 
   const previousPath = locationState?.fromPath ?? getReferrerPath(document.referrer)
 
@@ -221,6 +240,7 @@ function RouteTrailIdPage() {
             <button
                 type="button"
                 className="deleteBtn"
+                onClick={handleDelete}
                 style={{
                     border: 'none',
                     background: 'transparent',
