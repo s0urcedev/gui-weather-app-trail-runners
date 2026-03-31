@@ -60,6 +60,21 @@ function RoutesPage() {
   // Trigger hidden input when button is clicked
   const handleImportClick = (e: React.MouseEvent) => {
     e.preventDefault();
+
+    // Check how many routes are currently saved - if 5 already uploaded, prevent upload.
+    const existingRouteStr = localStorage.getItem('savedRoutes');
+    if (existingRouteStr) {
+      try {
+        const existingRoutes = JSON.parse(existingRouteStr);
+        if (existingRoutes.length > 5) {
+          alert('You have reached the maximum number of saved routes (5). Please delete an existing route before adding a new one.');
+          return;
+        }
+      } catch (error) {
+        console.error('Failed to parse existing routes from localStorage:', error);
+      }
+    }
+
     fileInputRef.current?.click();
   };
 
