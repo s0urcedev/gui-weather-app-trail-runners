@@ -38,6 +38,22 @@ function RoutesPage() {
   // Hold saved routes for the list
   const [savedRouteList, setSavedRouteList] = useState<any[]>([]);
 
+  // Delete route from list
+  const handleDeleteRoute = (idToDelete: string | number) => {
+    const confirmDelete = window.confirm('Are you sure you want to delete this route?');
+    if (!confirmDelete) return;
+
+    const storedRoutes = localStorage.getItem('savedRoutes');
+    if (storedRoutes) {
+      let routes = JSON.parse(storedRoutes);
+      // Remove from localStorage
+      routes = routes.filter((route: any) => route.id !== idToDelete.toString());
+      localStorage.setItem('savedRoutes', JSON.stringify(routes));
+      
+      setSavedRouteList(prevList => prevList.filter(route => route.id !== idToDelete.toString()));
+      }
+    }
+
   // Load GPX data
   useEffect(() => {
     const storedRoutes = localStorage.getItem('savedRoutes');
@@ -154,6 +170,7 @@ function RoutesPage() {
         tempRouteData.coordinates[i-1].latitude, tempRouteData.coordinates[i-1].longitude,
         tempRouteData.coordinates[i].latitude, tempRouteData.coordinates[i].longitude
       );
+      // Cumulative elevation gain (only count positive elevation changes)
       const elevationDiff = tempRouteData.coordinates[i].elevation - tempRouteData.coordinates[i-1].elevation;
       if (elevationDiff > 0) {
         totalElevationGain += elevationDiff;
@@ -214,6 +231,7 @@ function RoutesPage() {
             trailID={route.id}
             gpxData={route.gpxData}
             coordinates = {route.coordinates}
+            onDelete={handleDeleteRoute}
           />
         ))}
       </div>

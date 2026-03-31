@@ -15,9 +15,10 @@ type TrailItemProps = {
     showViewBtn?: boolean
 	gpxData: File | string | ArrayBuffer | null | undefined
     coordinates?: { latitude: number; longitude: number, elevation?: number }[]
+    onDelete?: (id: string | number) => void
 }
 
-export function TrailItem({ name, location, distance, height, time, trailID, showViewBtn = true, gpxData, coordinates }: TrailItemProps) {
+export function TrailItem({ name, location, distance, height, time, trailID, showViewBtn = true, gpxData, coordinates, onDelete }: TrailItemProps) {
     return (
         <article className="trail-item" aria-label={`Trail ${name}`}>
             <div className="trail-item-main">
@@ -51,18 +52,41 @@ export function TrailItem({ name, location, distance, height, time, trailID, sho
                 </div>
             </div>
             {showViewBtn && (
-                <Link 
-                    className="trail-item-link" 
-                    to={`/routes/${trailID}`}
-                    state={{
-                        fromPath: '/routes',
-                        coordinates: coordinates,
-                        routeName: name,
-                        gpxData: gpxData
-                    }}
-                >
-                    View
-                </Link>
+                <div style={{ display: 'flex', gap: '8px', marginTop: '12px' }}>
+                    <Link 
+                        className="trail-item-link" 
+                        style = {{flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center'}}
+                        to={`/routes/${trailID}`}
+                        state={{
+                            fromPath: '/routes',
+                            coordinates: coordinates,
+                            routeName: name,
+                            gpxData: gpxData
+                        }}
+                    >
+                        View
+                    </Link>
+                    {onDelete && (
+                        <button 
+                            onClick={(e) => {
+                                e.preventDefault();
+                                onDelete(trailID);
+                            }}
+                        style = {{
+                            width: '25%',
+                            backgroundColor: '#fee2e2',
+                            color: 'dc2626',
+                            border: 'none',
+                            borderRadius: '8px',
+                            cursor: 'pointer',
+                            fontWeight: '600',
+                            padding: '12px 0'
+                        }}
+                        >
+                            Delete
+                        </button>
+                    )}
+                </div>
             )}
         </article>
     )
