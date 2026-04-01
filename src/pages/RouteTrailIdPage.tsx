@@ -4,6 +4,7 @@ import { TrailItem } from '../components/TrailItem'
 import BackArrowHeadIcon from '../components/icons/BackArrowHeadIcon'
 import { fetchWeatherByCoordinatesMinutely15 } from '../scripts/weather'
 import WeatherForecastPanel from '../components/WeatherForecastPanel'
+import '../components/RouteTrailIdPage.css'
 
 type RouteLocationState = {
   fromPath?: string;
@@ -223,42 +224,15 @@ function RouteTrailIdPage() {
   }
 
   return (
-    <div className="App" style={{ paddingBottom: '60px' }}>
+    <div className="App trailPage">
       {isOffline && (
-        <div
-          style={{
-            marginBottom: '12px',
-            padding: '10px 12px',
-            borderRadius: '10px',
-            background: '#fef3c7',
-            color: '#92400e',
-            fontSize: '14px'
-          }}
-        >
+        <div className="offlineBanner">
           Offline - showing saved route data -
         </div>
       )}
         <button
             type="button"
             className="backBtn"
-            style={{
-                marginBottom: '12px',
-                border: 'none',
-                background: 'transparent',
-                color: '#2563eb',
-                padding: 0,
-                fontWeight: 400,
-                cursor: 'pointer',
-                fontSize: '20px',
-                width: '100%',
-                textAlign: 'left',
-                gap: '5px',
-                display: 'flex',
-                alignItems: 'baseline',
-                justifyContent: 'start',
-                marginBlockEnd: '10px',
-                marginTop: '10px',
-            }}
             onClick={() => navigate(backButtonTarget)}
         >
             <BackArrowHeadIcon />
@@ -275,39 +249,39 @@ function RouteTrailIdPage() {
             gpxData={gpxData}
         />
         {routeCoordinates.length > 0 && !weatherData && (
-          <div style={{ margin: '20px 0', padding: '15px', borderRadius: '12px', border: '1px solid var(--border)', background: 'var(--bg)', color: 'var(--text-h)'}}>
-            <h2 style={{ margin: '0 0 10px 0' }}>Route Forecast</h2>
-            <label style={{ display: 'block', fontSize: '1rem', marginBottom: '10px' }}>
+          <div className = "forecastContainer">
+            <h2 className = "forecastTitle">Route Forecast</h2>
+            <label className = "forecastLabel">
               Estimated Pace (min/km):
               <input 
                 type="number" 
                 value={pace} 
                 onChange={(e) => setPace(Number(e.target.value))} 
-                style={{borderRadius: '8px', marginLeft: '10px', width: '50px', padding: '5px', fontSize: '1rem', }}
+                className = "forecastInput"
                 min="1"
               /> min
               <input 
                 type="number" 
                 value={paceSec} 
                 onChange={(e) => setPaceSec(Number(e.target.value))} 
-                style={{ borderRadius: '8px', marginLeft: '5px', width: '50px', padding: '5px', fontSize: '1rem',}}
+                className = "forecastInputSec"
                 min="0"
                 max="59"
               /> sec
             </label>
-            <label style={{ display: 'block', fontSize: '1rem', marginBottom: '14px' }}>
+            <label className = "forecastDateLabel">
               Start Date & Time:
               <input
                 type="datetime-local"
                 value={runStartDateTime}
                 onChange={(e) => setRunStartDateTime(e.target.value)}
-                style={{ borderRadius: '8px', marginLeft: '10px', padding: '5px', fontSize: '1rem' }}
+                className = "forecastInputDate"
               />
             </label>
             <button 
               onClick={handleCalculateWeather}
               disabled={isLoading}
-              style={{ padding: '8px 16px', background: '#2563eb', color: 'white', border: '1px solid #ffffff50', borderRadius: '12px', cursor: isLoading ? 'not-allowed' : 'pointer', fontSize: '1rem', transition: 'opacity 0.2s' }}
+              className = "primaryBtn"
               onMouseEnter={(e) => !isLoading && (e.currentTarget.style.opacity = '0.7')}
               onMouseLeave={(e) => !isLoading && (e.currentTarget.style.opacity = '1')}
             >
@@ -317,11 +291,11 @@ function RouteTrailIdPage() {
         )}
 
         {weatherData && (
-          <div style={{ margin: '20px 0' }}>
+          <div className = "weatherDataContainer">
             <WeatherForecastPanel weatherData={weatherData} selectedStartDateTime={runStartDateTime} />
             <button 
               onClick={() => setWeatherData(null)} 
-              style={{ padding: '8px 18px', background: '#2563eb', color: 'white', borderRadius: '12px', marginTop: '10px', lineHeight: '1rem', cursor: 'pointer', fontSize: '1rem', fontWeight: 400, transition: 'opacity 0.2s', width: '100%', border: '1px solid #ffffff50', }}
+              className = "primaryBtn fullWidthBtn"
               onMouseEnter={(e) => e.currentTarget.style.opacity = '0.7'}
               onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
             >
@@ -330,12 +304,7 @@ function RouteTrailIdPage() {
           </div>
         )}
 
-        <div style={{
-            display: 'flex',
-            justifyContent: 'center',
-            width: 'min(1056px, 100%)',
-            alignItems: 'center'
-        }}>
+        <div className = "footer">
             <button
                type="button"
                 className="deleteBtn"
@@ -353,6 +322,7 @@ function RouteTrailIdPage() {
                     borderRadius: '12px',
                     padding: '8px 10px',
                     border: '1px solid #ffffff50',
+                }}
             >
               Download GPX
             </button>
@@ -360,20 +330,6 @@ function RouteTrailIdPage() {
                 type="button"
                 className="deleteBtn"
                 onClick={handleDelete}
-                style={{
-                    background: '#ff0000',
-                    color: 'white',
-                    fontWeight: 400,
-                    cursor: 'pointer',
-                    fontSize: '1rem',
-                    width: '100%',
-                    textAlign: 'center',
-                    marginBlockEnd: '10px',
-                    marginTop: '0px',
-                    borderRadius: '12px',
-                    padding: '8px 10px',
-                    border: '1px solid #ffffff50',
-                }}
             >
                 Delete Trail
             </button>

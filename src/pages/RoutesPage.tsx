@@ -7,6 +7,7 @@ import RouteIcon from '../components/icons/RouteIcon';
 import { ImportPlaceholder } from '../components/ImportPlaceholder';
 import { TrailItem } from '../components/TrailItem';
 import ThemeModeToggle from '../components/ThemeModeToggle';
+import '../components/RoutesPage.css';
 
 // Formula to calculate distance between two coordinates (Haversine formula)
 function getDistanceFromLatLon(lat1: number, lon1: number, lat2: number, lon2: number): number {
@@ -29,7 +30,6 @@ function RoutesPage() {
   // State for pop up to name file
   const [showPopUp, setShowPopUp] = useState(false);
   const [routeName, setRouteName] = useState('');
-  const [routeDate, setRouteDate] = useState('');
 
   // Temporarily hold data while file name is entered
   const [tempRouteData, setTempRouteData] = useState<{
@@ -38,7 +38,7 @@ function RoutesPage() {
   } | null>(null);
 
   // Hold saved routes for the list
-  const [savedRouteList, setSavedRouteList] = useState<any[]>([]);
+  const [savedRouteList, setSavedRouteList] = useState<any[]>([]); // Initialize savedRouteList state
 
   const handlePopupButtonHover = (
     event: React.MouseEvent<HTMLButtonElement>,
@@ -175,7 +175,6 @@ function RoutesPage() {
     const newRouteObject = {
       id: newTrailID,
       name: cleanedName,
-      date: routeDate,
       distance: Number(totalDist.toFixed(2)),
       time: estimatedTime, 
       height: Math.round(totalElevationGain),
@@ -201,9 +200,22 @@ function RoutesPage() {
     });
   };
 
+  const handleDeleteRoute = (idToDelete: string | number) => {
+    const confirmDelete = window.confirm('Are you sure you want to delete this route?');
+    if (!confirmDelete) return;
+
+    const storedRoutes = localStorage.getItem('savedRoutes');
+    if (storedRoutes) {
+      let routes = JSON.parse(storedRoutes);
+      routes = routes.filter((route: any) => route.id !== idToDelete.toString());
+      localStorage.setItem('savedRoutes', JSON.stringify(routes));
+      setSavedRouteList(prevList => prevList.filter(route => route.id !== idToDelete.toString()));
+    }
+  };
+
   return (
     <div className="App">
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
+      <div className='routes-header'>
         <h1>Trail Routes</h1>
         <ThemeModeToggle />
       </div>
@@ -211,7 +223,7 @@ function RoutesPage() {
         <ImportGPXButton text="Import Routes" icon={<RouteIcon />} />
       </div>
 
-      <input type="file" accept=".gpx" ref={fileInputRef} style={{display: 'none' }} onChange={handleFileChange}/>
+      <input type="file" accept=".gpx" ref={fileInputRef} className='hidden-file-input' onChange={handleFileChange} />
 
       <div className="items-list">
         {/* Loop through saved routes and display them*/}
@@ -219,13 +231,14 @@ function RoutesPage() {
           <TrailItem
             key={route.id}
             name={route.name}
-            location={route.date ? new Date(route.date).toLocaleDateString() : 'Upcoming Route'}
+            location="Saved Route"
             distance={route.distance || 0}
             height={route.height || 0}
             time={route.time || 0}
             trailID={route.id}
             gpxData={route.gpxData}
             coordinates = {route.coordinates}
+            onDelete={handleDeleteRoute}
           />
         ))}
       </div>
@@ -235,38 +248,25 @@ function RoutesPage() {
       )}
 
       {showPopUp && createPortal(
-        <div style={{
-          position: 'fixed',
-          inset: 0,
-          width: '100vw',
-          height: '100vh',
-          backgroundColor: 'rgba(0,0,0,0.5)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 1000
-        }}>
-          <div style={{
-            backgroundColor: 'white', padding: '24px', borderRadius: '12px', width: '90%', maxWidth: '350px',
-            display: 'flex', flexDirection: 'column', gap: '15px', color: 'black', boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
-          }}>
-            <h3 style={{ margin: 0, fontSize: '1.25rem' }}>Name Your Route</h3>
-            <p style={{ margin: 0, fontSize: '0.9rem', color: '#666' }}>Give this trail a unique name to save it to your list.</p>
+        <div className = 'popup-overlay'>
+          <div className = 'popup-modal'>
+            <h3 className = 'popup-title'>Name Your Route</h3>
+            <p className = 'popup-desc'>Give this trail a unique name to save it to your list.</p>
             <input
               type="text"
               value={routeName}
               onChange={(e) => setRouteName(e.target.value)}
               placeholder="e.g. Sunday Long Run"
-              style={{ padding: '10px', fontSize: '16px', borderRadius: '6px', border: '1px solid #ccc', outline: 'none' }}
+              className = 'popup-input'
               autoFocus
             />
 
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '10px' }}>
+            <div className = 'popup-actions'>
               <button
                 onClick={() => setShowPopUp(false)}
                 onMouseEnter={(event) => handlePopupButtonHover(event, true)}
                 onMouseLeave={(event) => handlePopupButtonHover(event, false)}
-                style={{ background: 'transparent', color: '#666', border: 'none', cursor: 'pointer', padding: '8px 16px', fontWeight: '500', transition: 'opacity 0.2s ease' }}
+                className = 'popup-btn popup-btn-cancel'
               >
                 Cancel
               </button>
@@ -274,7 +274,7 @@ function RoutesPage() {
                 onClick={handleSaveRoute}
                 onMouseEnter={(event) => handlePopupButtonHover(event, true)}
                 onMouseLeave={(event) => handlePopupButtonHover(event, false)}
-                style={{ background: '#2563eb', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '6px', cursor: 'pointer', fontWeight: '500', transition: 'opacity 0.2s ease' }}
+                className = 'popup-btn popup-btn-save'
               >
                 Save Route
               </button>
