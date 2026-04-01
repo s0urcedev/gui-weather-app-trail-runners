@@ -50,3 +50,7 @@ npm run dev
 ### Route forecast
 - Implemented in `pages/RouteTrailIdPage.tsx`
 - Allows to input an expected pace and builds a forecast for the route using `WeatherForecastPanel`
+
+### Theme mode
+- Implemented in `components/ThemeModeToggle.tsx`
+- Allows to switch the theme: light, dark or extra conrast for easier readability
