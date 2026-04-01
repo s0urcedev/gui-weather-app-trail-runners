@@ -1,73 +1,52 @@
-# React + TypeScript + Vite
+# Weather App for Trail Runners (ECS522U Group 54)
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+## How to run
 
-Currently, two official plugins are available:
-
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
-
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+1. Install dependencies:
+```bash
+npm i
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
-
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+2. Run in dev mode:
+```bash
+npm run dev
 ```
+
+3. Access: `https://localhost:5173`
+
+## Structure
+
+- `src/components` - components
+- `src/pages` - pages
+- `src/styles` - style sheets
+- `src/scripts` - scripts (functions reused in many components or logic worth separating)
+- `App.tsx` - the page Router
+- `public/example_routes` - example GPX routes to test import
+
+## Main features and where to find them
+
+### Weather API access
+- Implemented in `scripts/weather.ts`
+- Uses OpenMeteoAPI free for non-commercial use, open-source, does not require an API token/key
+- Main functions fetch current user location, coordinates from the location name and weather forecast with 15 minute intervals for the coordinate array given
+
+### Equipment recommendations
+- Implemented in `scripts/equipment.ts`, `scripts/equipmentRecommend.ts` and `scripts/weatherConditions.ts`
+- Checks weather data for conditions to build equipment recommendations
+
+### WeatherForecastPanel
+- Implemented in `components/WeatherForecastPanel.tsx`
+- Uses 3 other components `WeatherForecastCurrent`, `WeatherForecastChart`, `WeatherForecastRecommendations` for current data, chart for the forecast and equipment recommendations
+
+### Current weather + 3 hour forecast
+- Implemented in `pages/HomePage.tsx`
+- Uses `WeatherForecastPanel` component with either a location from input or current location
+
+### Route import + list
+- Implemented in `pages/RoutesPage.tsx`
+- Allows to import GPX files, stores them in localStorage, allows to download them back (even offline) and view the forecast for them
+- Example routes to test are given in `public/example_routes`
+
+### Route forecast
+- Implemented in `pages/RouteTrailIdPage.tsx`
+- Allows to input an expected pace and builds a forecast for the route using `WeatherForecastPanel`

@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gpx version="1.1" creator="TestTrail"
+  xmlns="http://www.topografix.com/GPX/1/1"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd">
+  <metadata>
+    <name>London Long Run</name>
+    <desc>A ~10km run through central London parks</desc>
+  </metadata>
+  <trk>
+    <name>London Long Run</name>
+    <trkseg>
+      <trkpt lat="51.5074" lon="-0.1657"><ele>14</ele></trkpt>
+      <trkpt lat="51.5080" lon="-0.1640"><ele>14</ele></trkpt>
+      <trkpt lat="51.5090" lon="-0.1620"><ele>13</ele></trkpt>
+      <trkpt lat="51.5100" lon="-0.1600"><ele>13</ele></trkpt>
+      <trkpt lat="51.5110" lon="-0.1575"><ele>12</ele></trkpt>
+      <trkpt lat="51.5120" lon="-0.1550"><ele>12</ele></trkpt>
+      <trkpt lat="51.5130" lon="-0.1520"><ele>11</ele></trkpt>
+      <trkpt lat="51.5140" lon="-0.1490"><ele>11</ele></trkpt>
+      <trkpt lat="51.5148" lon="-0.1460"><ele>11</ele></trkpt>
+      <trkpt lat="51.5152" lon="-0.1430"><ele>10</ele></trkpt>
+      <trkpt lat="51.5150" lon="-0.1400"><ele>10</ele></trkpt>
+      <trkpt lat="51.5145" lon="-0.1370"><ele>11</ele></trkpt>
+      <trkpt lat="51.5138" lon="-0.1340"><ele>11</ele></trkpt>
+      <trkpt lat="51.5128" lon="-0.1310"><ele>12</ele></trkpt>
+      <trkpt lat="51.5115" lon="-0.1285"><ele>12</ele></trkpt>
+      <trkpt lat="51.5100" lon="-0.1265"><ele>13</ele></trkpt>
+      <trkpt lat="51.5085" lon="-0.1250"><ele>13</ele></trkpt>
+      <trkpt lat="51.5070" lon="-0.1240"><ele>13</ele></trkpt>
+      <trkpt lat="51.5055" lon="-0.1245"><ele>13</ele></trkpt>
+      <trkpt lat="51.5040" lon="-0.1255"><ele>12</ele></trkpt>
+      <trkpt lat="51.5028" lon="-0.1270"><ele>12</ele></trkpt>
+      <trkpt lat="51.5018" lon="-0.1290"><ele>11</ele></trkpt>
+      <trkpt lat="51.5010" lon="-0.1315"><ele>11</ele></trkpt>
+      <trkpt lat="51.5005" lon="-0.1345"><ele>11</ele></trkpt>
+      <trkpt lat="51.5003" lon="-0.1375"><ele>10</ele></trkpt>
+      <trkpt lat="51.5005" lon="-0.1405"><ele>10</ele></trkpt>
+      <trkpt lat="51.5010" lon="-0.1435"><ele>11</ele></trkpt>
+      <trkpt lat="51.5018" lon="-0.1465"><ele>11</ele></trkpt>
+      <trkpt lat="51.5028" lon="-0.1495"><ele>12</ele></trkpt>
+      <trkpt lat="51.5040" lon="-0.1520"><ele>12</ele></trkpt>
+      <trkpt lat="51.5053" lon="-0.1542"><ele>13</ele></trkpt>
+      <trkpt lat="51.5063" lon="-0.1565"><ele>13</ele></trkpt>
+      <trkpt lat="51.5068" lon="-0.1592"><ele>14</ele></trkpt>
+      <trkpt lat="51.5070" lon="-0.1620"><ele>14</ele></trkpt>
+      <trkpt lat="51.5072" lon="-0.1640"><ele>14</ele></trkpt>
+      <trkpt lat="51.5074" lon="-0.1657"><ele>14</ele></trkpt>
+    </trkseg>
+  </trk>
+</gpx>
