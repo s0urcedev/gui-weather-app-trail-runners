@@ -19,15 +19,15 @@ type TrailItemProps = {
 
 export function TrailItem({ name, distance, height, time, trailID, showViewBtn = true, gpxData, coordinates, onDelete }: TrailItemProps) {
     return (
-        <article className="trail-item" aria-label={`Trail ${name}`}>
+        <article className="trail-item">
             <div className="trail-item-main">
                 <div className="trail-item-details">
+                    {/* Title of trail */}
                     <h3 className="trail-item-name">{name}</h3>
-                    {/* <p className="trail-item-location">{location}</p> */}
 
+                    {/* Trail metrics such as distance, height, time */}
                     <div
                         className={`trail-item-metrics${showViewBtn ? '' : ' trail-item-metrics-bottom-margin'}`}
-                        aria-label="Trail stats"
                     >
                         <div className="trail-item-metric">
                             <HorizontalArrowsIcon size={16} className="trail-item-metric-icon" />
@@ -44,12 +44,14 @@ export function TrailItem({ name, distance, height, time, trailID, showViewBtn =
                     </div>
                 </div>
 
-                <div className="trail-item-map-holder" aria-label={`Trail ID ${trailID}`}>
+                {/* Trail Mini-Map */}
+                <div className="trail-item-map-holder">
                     <RouteMinimap 
                         gpxData={gpxData}
                     />
                 </div>
             </div>
+            {/* Trail Item Buttons (Delete and View) */}
             {showViewBtn && (
                 <div style={{ display: 'flex', gap: '0px', marginTop: '12px' }}>
                     <Link 

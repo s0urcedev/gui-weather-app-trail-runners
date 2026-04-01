@@ -12,7 +12,7 @@ export default function WeatherForecastRecommendations({ weatherData }: WeatherF
     const durationHours = Math.floor(duration);
     const durationMinutes = Math.round((duration - durationHours) * 60).toString().padStart(2, '0');
     return (
-      <div className="weather-panel-recommendations" aria-label="Equipment recommendations">
+      <div className="weather-panel-recommendations">
         <h4 className="weather-panel-recommendations-title">Equipment recommendations (for the next {durationHours}:{durationMinutes} hours)</h4>
 
         <div className="weather-panel-recommendations-groups">

@@ -8,7 +8,7 @@ type WeatherForecastCurrentProps = {
 
 export default function WeatherForecastCurrent({ current }: WeatherForecastCurrentProps) {
   return (
-    <div className="weather-panel-current" aria-label="Current weather conditions">
+    <div className="weather-panel-current">
       <div className="weather-panel-current-temp">
         {formatValue(current.temperature_2m)}°C
       </div>

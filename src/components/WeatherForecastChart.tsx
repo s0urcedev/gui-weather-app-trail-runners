@@ -225,8 +225,8 @@ export default function WeatherForecastChart({ weatherData }: WeatherForecastCha
   const isLastSlide = activeGroupIndex === chartGroups.length - 1
 
   return (
-    <div className="weather-panel-chart" aria-label="Forecast chart">
-      <div className="weather-panel-slider" aria-label="Forecast chart groups slider">
+    <div className="weather-panel-chart">
+      <div className="weather-panel-slider">
         <div className="weather-panel-slider-top">
           <button
             type="button"
@@ -272,7 +272,6 @@ export default function WeatherForecastChart({ weatherData }: WeatherForecastCha
               viewBox={`0 0 ${chartWidth} ${chartHeight}`}
               className="weather-panel-chart-svg"
               role="img"
-              aria-label={`${activeGroup.title} forecast chart`}
             >
               {/* Horizontal axis: */}
               <line 

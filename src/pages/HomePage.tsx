@@ -74,7 +74,6 @@ export default function HomePage() {
           value={location}
           onChange={(event) => setLocation(event.target.value)}
           placeholder="Enter city (e.g. Berlin or Paris,FR)"
-          aria-label="Location"
         />
 
         <button
