@@ -105,6 +105,7 @@ function RouteTrailIdPage() {
 
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
 
+  // tracks whether the user is currently online or offline
   useEffect(() => {
     const goOnline = () => setIsOffline(false);
     const goOffline = () => setIsOffline(true);
@@ -161,27 +162,34 @@ function RouteTrailIdPage() {
     });
   }
 
+  // creates a GPX file and triggers download
   const handleDownloadGPXFile = () => {
     if (!gpxData) {
       alert('No GPX data available for this route.');
       return;
     }
 
-    const safeFileName = `${routeName || 'route'}.gpx`
+    const safeBaseName = (routeName || 'route')
       .replace(/[^a-z0-9_\- ]/gi, '')
-      .replace(/\s+/g, '_');
+      .replace(/\s+/g, '_') || 'route';
 
-    const blob = new Blob([gpxData], { type: 'application/gpx+xml' });
+    const safeFileName = `${safeBaseName}.gpx`;
+
+    const blob = new Blob([String(gpxData)], { type: 'application/gpx+xml' });
     const url = window.URL.createObjectURL(blob);
 
     const link = document.createElement('a');
     link.href = url;
     link.download = safeFileName;
+    link.target = '_blank';
+
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
 
-    window.URL.revokeObjectURL(url);
+    setTimeout(() => {
+      window.URL.revokeObjectURL(url);
+    }, 100);
   };
 
   useEffect(() => {
@@ -339,7 +347,7 @@ function RouteTrailIdPage() {
             <button
                type="button"
                 className="deleteBtn"
-                onClick={handleDelete}
+                onClick={handleDownloadGPXFile}
                 style={{
                     background: '#3f3fa8',
                     color: 'white',
