@@ -1,0 +1,81 @@
+.routes-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+}
+  
+.hidden-file-input {
+    display: none;
+}
+
+.popup-overlay {
+    position: fixed;
+    inset: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+  
+.popup-modal {
+    background-color: white;
+    padding: 24px;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 350px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    color: black;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+  
+.popup-title {
+    margin: 0;
+    font-size: 1.25rem;
+}
+  
+.popup-desc {
+    margin: 0;
+    font-size: 0.9rem;
+    color: #666;
+}
+  
+.popup-input {
+    padding: 10px;
+    font-size: 16px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    outline: none;
+}
+  
+.popup-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 10px;
+}
+  
+  /* Base button styles */
+.popup-btn {
+    border: none;
+    padding: 8px 16px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: opacity 0.2s ease;
+}
+  
+.popup-btn-cancel {
+    background: transparent;
+    color: #666;
+}
+  
+.popup-btn-save {
+    background: #2563eb;
+    color: white;
+    border-radius: 6px;
+}
