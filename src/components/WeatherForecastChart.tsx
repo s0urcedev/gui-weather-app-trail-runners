@@ -233,6 +233,7 @@ export default function WeatherForecastChart({ weatherData }: WeatherForecastCha
             className="weather-panel-slider-button"
             onClick={() => setActiveGroupIndex((value) => Math.max(0, value - 1))}
             disabled={isFirstSlide}
+            aria-label="Previous forecast group"
           >
             {'<'}
           </button>
@@ -249,6 +250,7 @@ export default function WeatherForecastChart({ weatherData }: WeatherForecastCha
               setActiveGroupIndex((value) => Math.min(chartGroups.length - 1, value + 1))
             }
             disabled={isLastSlide}
+            aria-label="Next forecast group"
           >
             {'>'}
           </button>

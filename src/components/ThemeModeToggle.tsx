@@ -55,6 +55,7 @@ function ThemeModeToggle() {
         setIsPressed(false)
         event.currentTarget.style.opacity = '1'
       }}
+      aria-label="Switch/Cycle theme mode (light, dark, high-contrast)"
     >
       {themeIconByMode[themeMode]}
     </button>

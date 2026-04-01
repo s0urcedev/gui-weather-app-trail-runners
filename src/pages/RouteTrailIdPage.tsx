@@ -217,6 +217,7 @@ function RouteTrailIdPage() {
                 onChange={(e) => setPace(Number(e.target.value))} 
                 className = "forecastInput"
                 min="1"
+                aria-label="Pace minutes per kilometer"
               /> min
               <input 
                 type="number" 
@@ -225,6 +226,7 @@ function RouteTrailIdPage() {
                 className = "forecastInputSec"
                 min="0"
                 max="59"
+                aria-label="Pace seconds"
               /> sec
             </label>
             <label className = "forecastDateLabel">

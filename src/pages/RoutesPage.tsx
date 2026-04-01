@@ -259,6 +259,7 @@ function RoutesPage() {
               placeholder="e.g. Sunday Long Run"
               className = 'popup-input'
               autoFocus
+              aria-label="Route name"
             />
 
             <div className = 'popup-actions'>

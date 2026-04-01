@@ -74,6 +74,7 @@ export default function HomePage() {
           value={location}
           onChange={(event) => setLocation(event.target.value)}
           placeholder="Enter city (e.g. Berlin or Paris,FR)"
+          aria-label="Enter city for weather forecast"
         />
 
         <button
