@@ -200,7 +200,7 @@ async function fetchHistoricalWeatherByCoordinates(coordinates: Coordinates[], r
         results.push({
             latitude: toNumber(data.latitude, coordinate.latitude),
             longitude: toNumber(data.longitude, coordinate.longitude),
-            time: times[nearestIndex] ?? formatDateTimeForApi(pointTime),
+            time: formatDateTimeForApi(pointTime),
             elevation: toNumber(data.elevation, 0),
             temperature_2m: toNumber(hourly.temperature_2m?.[nearestIndex]),
             relative_humidity_2m: toNumber(hourly.relative_humidity_2m?.[nearestIndex]),
@@ -253,7 +253,7 @@ async function fetchForecastWeatherByCoordinates(coordinates: Coordinates[], run
         results.push({
             latitude: toNumber(data.latitude, coordinate.latitude),
             longitude: toNumber(data.longitude, coordinate.longitude),
-            time: times[nearestIndex] ?? formatDateTimeForApi(pointTime),
+            time: formatDateTimeForApi(pointTime),
             elevation: toNumber(data.elevation, 0),
             temperature_2m: toNumber(minutelyData.temperature_2m?.[nearestIndex]),
             relative_humidity_2m: toNumber(minutelyData.relative_humidity_2m?.[nearestIndex]),
