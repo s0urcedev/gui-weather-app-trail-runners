@@ -104,6 +104,7 @@ function getSeriesToneOpacity(index: number): number {
 export default function WeatherForecastChart({ weatherData }: WeatherForecastChartProps) {
   const [activeGroupIndex, setActiveGroupIndex] = useState(0)
 
+  // Active group of metrics currently selected on the slider:
   const activeGroup = chartGroups[activeGroupIndex]
 
   // Calculations for the graph:
@@ -124,6 +125,7 @@ export default function WeatherForecastChart({ weatherData }: WeatherForecastCha
   const chartWidth = drawableWidth + paddingLeft + paddingRight;
   const drawableHeight = chartHeight - paddingTop - paddingBottom;
 
+  // The step on the x-axis:
   const xStep = Math.max(fixedXStep, forecastLength > 1 ? drawableWidth / (forecastLength - 1) : drawableWidth);
 
   // Scaling units so they can be drawn on the same graph:
@@ -151,7 +153,7 @@ export default function WeatherForecastChart({ weatherData }: WeatherForecastCha
     unitScaleMap.set(unit, { min: nextMin, max: nextMax, range: nextMax - nextMin })
   })
 
-  // Building the series with points to be drawn:
+  // Building the series of values to be drawn:
   const series = activeGroup.metrics.map((metric) => {
     const values = weatherData.map((entry) => entry[metric.key])
     const min = Math.min(...values)
@@ -187,7 +189,7 @@ export default function WeatherForecastChart({ weatherData }: WeatherForecastCha
     }
   })
 
-  // Detecting overlapping series to apply vertical offsets:
+  // Detecting overlapping series to apply vertical offsets (so points and lines don't overlap):
   const pointSignature = (values: { x: number; y: number }[]) =>
     values.map((point) => `${point.x.toFixed(2)}:${point.y.toFixed(2)}`).join('|')
 
@@ -265,13 +267,15 @@ export default function WeatherForecastChart({ weatherData }: WeatherForecastCha
           <p className="weather-panel-empty">No forecast points after current weather.</p>
         ) : (
           <div className="weather-panel-slider-content">
+            {/* Draws an SVG for the chart: */}
             <svg
               viewBox={`0 0 ${chartWidth} ${chartHeight}`}
               className="weather-panel-chart-svg"
               role="img"
               aria-label={`${activeGroup.title} forecast chart`}
             >
-              <line
+              {/* Horizontal axis: */}
+              <line 
                 x1={paddingLeft}
                 y1={chartHeight - paddingBottom}
                 x2={chartWidth - paddingRight}
@@ -279,6 +283,7 @@ export default function WeatherForecastChart({ weatherData }: WeatherForecastCha
                 className="weather-panel-axis"
               />
 
+              {/* Lines for every metric in the build series from the active group in the slider: */}
               {series.map((metric, seriesIndex) => {
                 const seriesOffset = seriesOffsetByKey.get(metric.key) ?? 0
                 const toneOpacity = getSeriesToneOpacity(seriesIndex)
@@ -286,6 +291,7 @@ export default function WeatherForecastChart({ weatherData }: WeatherForecastCha
 
                 return (
                   <g key={metric.key}>
+                    {/* Lines: */}
                     <polyline
                       points={metric.points
                         .map((point) => `${point.x},${point.y + seriesOffset}`)
@@ -315,6 +321,7 @@ export default function WeatherForecastChart({ weatherData }: WeatherForecastCha
                             />
                           )
                         })()}
+                        {/* Points: */}
                         <circle
                           cx={point.x}
                           cy={point.y + seriesOffset}
@@ -323,6 +330,7 @@ export default function WeatherForecastChart({ weatherData }: WeatherForecastCha
                           fillOpacity={toneOpacity}
                           className="weather-panel-point-dot"
                         />
+                        {/* Labels: */}
                         <text
                           x={point.x}
                           y={labelY}
@@ -339,6 +347,7 @@ export default function WeatherForecastChart({ weatherData }: WeatherForecastCha
                 )
               })}
 
+              {/* X-axis ticks and labels: */}
               {tickIndexes.map((tickIndex) => {
                 const x = paddingLeft + tickIndex * xStep
                 const y = chartHeight - paddingBottom
