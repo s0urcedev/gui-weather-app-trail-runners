@@ -91,11 +91,18 @@ export default function HomePage() {
           style={{
             padding: '10px 14px',
             borderRadius: 8,
-            border: '1px solid transparent',
-            background: 'var(--accent-bg)',
-            color: 'var(--text-h)',
+            border: '1px solid #ffffff50',
+            background: '#009DFF',
+            color: 'white',
             cursor: isLoading ? 'not-allowed' : 'pointer',
             font: 'inherit',
+            transition: 'opacity 0.2s ease',
+          }}
+          onMouseEnter={(event) => {
+            event.currentTarget.style.opacity = '0.7'
+          }}
+          onMouseLeave={(event) => {
+            event.currentTarget.style.opacity = '1'
           }}
         >
           {isLoading ? 'Loading...' : 'Get weather'}
@@ -109,12 +116,19 @@ export default function HomePage() {
         style={{
           padding: '10px 14px',
           borderRadius: 8,
-          border: '1px solid var(--border)',
-          background: 'var(--bg)',
-          color: 'var(--text-h)',
+          border: '1px solid #ffffff50',
+          background: '#009DFF',
+          color: 'white',
           cursor: isLoading ? 'not-allowed' : 'pointer',
           font: 'inherit',
           marginBottom: 16,
+          transition: 'opacity 0.2s ease',
+        }}
+        onMouseEnter={(event) => {
+          event.currentTarget.style.opacity = '0.7'
+        }}
+        onMouseLeave={(event) => {
+          event.currentTarget.style.opacity = '1'
         }}
       >
         {isLoading ? 'Loading...' : 'Use current location'}

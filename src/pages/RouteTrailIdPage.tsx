@@ -77,6 +77,7 @@ function RouteTrailIdPage() {
   const routeCoordinates = locationState?.coordinates ?? [];
   const gpxData = locationState?.gpxData || null;
   const [weatherData, setWeatherData] = useState<any[] | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   // default pace set to 6 min/KM
   const [pace, setPace] = useState<number>(6);
   const [paceSec, setPaceSec] = useState<number>(0);
@@ -97,6 +98,8 @@ function RouteTrailIdPage() {
   // Calculate 15 minute intervals
   const handleCalculateWeather = () => {
     if (routeCoordinates.length === 0) return;
+
+    setIsLoading(true);
 
     const points15Min = []; // Filtered coordinates will be saved here
     let accumulatedDistance = 0;
@@ -123,8 +126,10 @@ function RouteTrailIdPage() {
     // Call weather API for each point
     fetchWeatherByCoordinatesMinutely15(points15Min).then((data) => {
       setWeatherData(data);
+      setIsLoading(false);
     }).catch((error) => {
       console.error("Failed to fetch weather data:", error);
+      setIsLoading(false);
     });
   }
 
@@ -200,11 +205,12 @@ function RouteTrailIdPage() {
             </label>
             <button 
               onClick={handleCalculateWeather}
-              style={{ padding: '8px 16px', background: '#2563eb', color: 'white', border: '1px solid #ffffff50', borderRadius: '12px', cursor: 'pointer', fontSize: '1rem', transition: 'opacity 0.2s' }}
-              onMouseEnter={(e) => e.currentTarget.style.opacity = '0.7'}
-              onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
+              disabled={isLoading}
+              style={{ padding: '8px 16px', background: '#2563eb', color: 'white', border: '1px solid #ffffff50', borderRadius: '12px', cursor: isLoading ? 'not-allowed' : 'pointer', fontSize: '1rem', transition: 'opacity 0.2s' }}
+              onMouseEnter={(e) => !isLoading && (e.currentTarget.style.opacity = '0.7')}
+              onMouseLeave={(e) => !isLoading && (e.currentTarget.style.opacity = '1')}
             >
-              Get Weather Forecast
+              {isLoading ? 'Loading...' : 'Get Weather Forecast'}
             </button>
           </div>
         )}
