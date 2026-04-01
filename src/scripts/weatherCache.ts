@@ -4,31 +4,48 @@ type CacheEntry<T> = {
 }
 
 class APICache {
-  private cache = new Map<string, CacheEntry<any>>()
   private readonly TTL = 15 * 60 * 1000 // 15 minutes
+  private readonly prefix = 'cache_'
 
   set<T>(key: string, data: T): void {
-    this.cache.set(key, {
+    const entry: CacheEntry<T> = {
       data,
       timestamp: Date.now(),
-    })
+    }
+    try {
+      localStorage.setItem(this.prefix + key, JSON.stringify(entry))
+    } catch (e) {
+      console.warn('Failed to write to localStorage:', e)
+    }
   }
 
   get<T>(key: string): T | null {
-    const entry = this.cache.get(key)
-    if (!entry) return null
+    try {
+      const stored = localStorage.getItem(this.prefix + key)
+      if (!stored) return null
 
-    // Check if expired
-    if (Date.now() - entry.timestamp > this.TTL) {
-      this.cache.delete(key)
+      const entry: CacheEntry<T> = JSON.parse(stored)
+
+      // Check if expired
+      if (Date.now() - entry.timestamp > this.TTL) {
+        localStorage.removeItem(this.prefix + key)
+        return null
+      }
+
+      return entry.data
+    } catch (e) {
+      console.warn('Failed to read from localStorage:', e)
       return null
     }
-
-    return entry.data as T
   }
 
   clear(): void {
-    this.cache.clear()
+    const keys = Object.keys(localStorage)
+    keys.forEach((key) => {
+      if (key.startsWith(this.prefix)) {
+        localStorage.removeItem(key)
+      }
+    })
   }
 }
 
