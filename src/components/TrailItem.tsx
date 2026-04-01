@@ -52,10 +52,10 @@ export function TrailItem({ name, location, distance, height, time, trailID, sho
                 </div>
             </div>
             {showViewBtn && (
-                <div style={{ display: 'flex', gap: '8px', marginTop: '12px' }}>
+                <div style={{ display: 'flex', gap: '0px', marginTop: '12px' }}>
                     <Link 
                         className="trail-item-link" 
-                        style = {{flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center'}}
+                        style = {{flex: 0.7, display: 'flex', alignItems: 'center', justifyContent: 'center'}}
                         to={`/routes/${trailID}`}
                         state={{
                             fromPath: '/routes',
@@ -67,24 +67,23 @@ export function TrailItem({ name, location, distance, height, time, trailID, sho
                         View
                     </Link>
                     {onDelete && (
-                        <button 
+                        <Link 
                             onClick={(e) => {
                                 e.preventDefault();
                                 onDelete(trailID);
                             }}
-                        style = {{
-                            width: '25%',
-                            backgroundColor: '#fee2e2',
-                            color: 'dc2626',
-                            border: 'none',
-                            borderRadius: '8px',
-                            cursor: 'pointer',
-                            fontWeight: '600',
-                            padding: '12px 0'
-                        }}
+                            className="trail-item-delete-link" 
+                            style = {{flex: 0.3, display: 'flex', alignItems: 'center', justifyContent: 'center'}}
+                            to={`/routes/${trailID}`}
+                            state={{
+                                fromPath: '/routes',
+                                coordinates: coordinates,
+                                routeName: name,
+                                gpxData: gpxData
+                            }}
                         >
                             Delete
-                        </button>
+                        </Link>
                     )}
                 </div>
             )}

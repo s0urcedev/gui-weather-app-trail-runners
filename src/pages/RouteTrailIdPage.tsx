@@ -178,29 +178,31 @@ function RouteTrailIdPage() {
             gpxData={gpxData}
         />
         {routeCoordinates.length > 0 && !weatherData && (
-          <div style={{ margin: '20px 0', padding: '15px', border: '1px solid #ccc', borderRadius: '8px' }}>
-            <h3 style={{ margin: '0 0 10px 0' }}>Route Forecast</h3>
-            <label style={{ display: 'block', marginBottom: '10px' }}>
+          <div style={{ margin: '20px 0', padding: '15px', borderRadius: '12px', border: '1px solid var(--border)', background: 'var(--bg)', color: 'var(--text-h)'}}>
+            <h2 style={{ margin: '0 0 10px 0' }}>Route Forecast</h2>
+            <label style={{ display: 'block', fontSize: '1rem', marginBottom: '10px' }}>
               Estimated Pace (min/km):
               <input 
                 type="number" 
                 value={pace} 
                 onChange={(e) => setPace(Number(e.target.value))} 
-                style={{ marginLeft: '10px', width: '50px', padding: '5px' }}
+                style={{borderRadius: '8px', marginLeft: '10px', width: '50px', padding: '5px', fontSize: '1rem', }}
                 min="1"
               /> min
               <input 
                 type="number" 
                 value={paceSec} 
                 onChange={(e) => setPaceSec(Number(e.target.value))} 
-                style={{ marginLeft: '5px', width: '50px', padding: '5px' }}
+                style={{ borderRadius: '8px', marginLeft: '5px', width: '50px', padding: '5px', fontSize: '1rem',}}
                 min="0"
                 max="59"
               /> sec
             </label>
             <button 
               onClick={handleCalculateWeather}
-              style={{ padding: '8px 16px', background: '#2563eb', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
+              style={{ padding: '8px 16px', background: '#2563eb', color: 'white', border: '1px solid #ffffff50', borderRadius: '12px', cursor: 'pointer', fontSize: '1rem', transition: 'opacity 0.2s' }}
+              onMouseEnter={(e) => e.currentTarget.style.opacity = '0.7'}
+              onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
             >
               Get Weather Forecast
             </button>
@@ -212,70 +214,41 @@ function RouteTrailIdPage() {
             <WeatherForecastPanel weatherData={weatherData} />
             <button 
               onClick={() => setWeatherData(null)} 
-              style={{ marginTop: '10px', background: 'transparent', color: '#2563eb', border: 'none', cursor: 'pointer', padding: 0 }}
+              style={{ padding: '8px 18px', background: '#2563eb', color: 'white', borderRadius: '12px', marginTop: '10px', lineHeight: '1rem', cursor: 'pointer', fontSize: '1rem', fontWeight: 400, transition: 'opacity 0.2s', width: '100%', border: '1px solid #ffffff50', }}
+              onMouseEnter={(e) => e.currentTarget.style.opacity = '0.7'}
+              onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
             >
               Change Pace & Recalculate
             </button>
           </div>
         )}
 
-        <h2 style={{marginTop: '20px', marginBottom: '5px'}}>Past Activities on this Trail</h2>
-        <div className='items-list'>
-            <PastActivityItem
-              name="Tue 17 Feb 2026, 6:00PM - 6:13PM"
-              distance={3.2}
-              height={12}
-              time={12}
-              activityID="001"
-            />
-        </div>
         <div style={{
-            position: 'fixed',
-            bottom: 10,
-            zIndex: 100,
             display: 'flex',
-            justifyContent: 'space-between',
+            justifyContent: 'center',
             width: 'min(1056px, 100%)',
+            alignItems: 'center'
         }}>
             <button
                 type="button"
                 className="deleteBtn"
                 onClick={handleDelete}
                 style={{
-                    border: 'none',
-                    background: 'transparent',
-                    color: '#FF0000',
-                    padding: 0,
+                    background: '#ff0000',
+                    color: 'white',
                     fontWeight: 400,
                     cursor: 'pointer',
-                    fontSize: '20px',
-                    width: 'max-content',
-                    textAlign: 'left',
+                    fontSize: '1rem',
+                    width: '100%',
+                    textAlign: 'center',
                     marginBlockEnd: '10px',
-                    marginTop: '10px',
+                    marginTop: '0px',
+                    borderRadius: '12px',
+                    padding: '8px 10px',
+                    border: '1px solid #ffffff50',
                 }}
             >
                 Delete Trail
-            </button>
-            <button
-                type="button"
-                className="openBtn"
-                style={{
-                    border: 'none',
-                    background: 'transparent',
-                    color: 'var(--blue)',
-                    padding: 0,
-                    fontWeight: 400,
-                    cursor: 'pointer',
-                    fontSize: '20px',
-                    width: 'max-content',
-                    textAlign: 'left',
-                    marginBlockEnd: '10px',
-                    marginTop: '10px',
-                    marginRight: '25px',
-                }}
-            >
-                Open in Up Next
             </button>
         </div>
     </div>

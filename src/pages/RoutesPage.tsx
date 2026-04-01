@@ -236,7 +236,9 @@ function RoutesPage() {
         ))}
       </div>
 
-      <ImportPlaceholder icon={<RouteIcon />} text="Import a route to see it here" />
+      {savedRouteList.length === 0 && (
+        <ImportPlaceholder icon={<RouteIcon />} text="Import a route to see it here" />
+      )}
 
       {showPopUp && (
         <div style={{
