@@ -64,22 +64,22 @@
     rgba(0, 0, 0, 0.4) 0 10px 15px -3px, rgba(0, 0, 0, 0.25) 0 4px 6px -2px;
 }
 
-:root[data-theme='dark'] {
-  --text: #9ca3af;
-  --text-h: #f3f4f6;
-  --bg: #16171d;
-  --bg-image-filter: invert(1);
-  --border: #2e303a;
-  --code-bg: #1f2028;
-  --accent: #c084fc;
-  --accent-bg: rgba(192, 132, 252, 0.15);
-  --accent-border: rgba(192, 132, 252, 0.5);
-  --social-bg: rgba(47, 48, 58, 0.5);
-  --shadow:
-    rgba(0, 0, 0, 0.4) 0 10px 15px -3px, rgba(0, 0, 0, 0.25) 0 4px 6px -2px;
+:root[data-theme='high-contrast'] {
+  --text: #ffffff;
+  --text-h: #ffffff;
+  --bg: #000000;
+  --bg-image-filter: grayscale(1) contrast(1.45);
+  --border: #ffffff;
+  --code-bg: #000000;
+  --accent: #ffe600;
+  --accent-bg: #000000;
+  --accent-border: #ffe600;
+  --social-bg: #000000;
+  --shadow: none;
 }
 
-:root[data-theme='dark'] #social .button-icon {
+:root[data-theme='dark'] #social .button-icon,
+:root[data-theme='high-contrast'] #social .button-icon {
   filter: invert(1) brightness(2);
 }
 
@@ -107,6 +107,27 @@
 
 body {
   margin: 0;
+}
+
+html,
+body,
+#root,
+#root * {
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+:root[data-theme='high-contrast'] *:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 2px;
+}
+
+:root[data-theme='high-contrast'] .items-list > * {
+  box-shadow: 0 0 0 1px var(--border);
+}
+
+:root[data-theme='high-contrast'] .tabbar {
+  box-shadow: none;
+  border-top: 1px solid var(--text);
 }
 
 h1,
@@ -190,6 +211,9 @@ code {
 :root[data-theme='dark'] {
   --glow-bg: rgba(11, 51, 112, 0.3);
 }
+:root[data-theme='high-contrast'] {
+  --glow-bg: rgba(0, 0, 0, 1);
+}
 
 body {
   margin: 0;
@@ -225,6 +249,11 @@ body::after {
 :root[data-theme='dark'] body::after {
   -webkit-mask-image: radial-gradient(circle at center, #00000035 0%, transparent 54%);
   mask-image: radial-gradient(circle at center, #00000035 0%, transparent 50%);
+}
+
+:root[data-theme='high-contrast'] body::before,
+:root[data-theme='high-contrast'] body::after {
+  display: none;
 }
 
 #root {
