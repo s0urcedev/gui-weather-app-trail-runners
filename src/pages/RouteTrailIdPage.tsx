@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import { TrailItem } from '../components/TrailItem'
 import BackArrowHeadIcon from '../components/icons/BackArrowHeadIcon'
@@ -10,7 +10,7 @@ type RouteLocationState = {
   // Data passed from RoutesPage
   coordinates?: { latitude: number; longitude: number; elevation?: number }[];
   routeName?: string; // Added routeName property
-  gpxData?: any; // Added gpxData property
+  gpxData?: string | null; // Added gpxData property
 }
 
 // Formula to calculate distance between two coordinates (Haversine formula)
@@ -77,9 +77,12 @@ function RouteTrailIdPage() {
   const previousPath = locationState?.fromPath ?? getReferrerPath(document.referrer)
 
   // list of all coordinates from GPX file
-  const routeName = locationState?.routeName ?? 'Uploaded Trail'
-  const routeCoordinates = locationState?.coordinates ?? [];
-  const gpxData = locationState?.gpxData || null;
+  const [routeName, setRouteName] = useState('Uploaded Trail');
+  const [routeCoordinates, setRouteCoordinates] = useState<
+    { latitude: number; longitude: number; elevation?: number }[]
+  >([]);
+  const [gpxData, setGpxData] = useState<string | null>(null);
+
   const [weatherData, setWeatherData] = useState<any[] | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   // default pace set to 6 min/KM
@@ -100,9 +103,29 @@ function RouteTrailIdPage() {
 
     }
 
+  const [isOffline, setIsOffline] = useState(!navigator.onLine);
+
+  useEffect(() => {
+    const goOnline = () => setIsOffline(false);
+    const goOffline = () => setIsOffline(true);
+
+    window.addEventListener('online', goOnline);
+    window.addEventListener('offline', goOffline);
+
+    return () => {
+      window.removeEventListener('online', goOnline);
+      window.removeEventListener('offline', goOffline);
+    };
+  }, []);
+
   // Calculate 15 minute intervals
   const handleCalculateWeather = () => {
     if (routeCoordinates.length === 0) return;
+
+    if (!navigator.onLine) {
+      alert("You are offline. Weather forecasts cannot be fetched right now.")
+      return;
+    }
 
     setIsLoading(true);
 
@@ -138,6 +161,56 @@ function RouteTrailIdPage() {
     });
   }
 
+  const handleDownloadGPXFile = () => {
+    if (!gpxData) {
+      alert('No GPX data available for this route.');
+      return;
+    }
+
+    const safeFileName = `${routeName || 'route'}.gpx`
+      .replace(/[^a-z0-9_\- ]/gi, '')
+      .replace(/\s+/g, '_');
+
+    const blob = new Blob([gpxData], { type: 'application/gpx+xml' });
+    const url = window.URL.createObjectURL(blob);
+
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = safeFileName;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    window.URL.revokeObjectURL(url);
+  };
+
+  useEffect(() => {
+    if (locationState?.coordinates && locationState.coordinates.length > 0) {
+      setRouteName(locationState.routeName ?? 'Uploaded Trail');
+      setRouteCoordinates(locationState.coordinates);
+      setGpxData(locationState.gpxData ?? null);
+      return;
+    }
+
+    if (!trailID) return;
+
+    const storedRoutes = localStorage.getItem('savedRoutes');
+    if (!storedRoutes) return;
+
+    try {
+      const routes = JSON.parse(storedRoutes);
+      const matchedRoute = routes.find((route: any) => route.id == trailID);
+
+      if (matchedRoute) {
+        setRouteName(matchedRoute.name ?? 'Uploaded Trail');
+        setRouteCoordinates(matchedRoute.coordinates ?? []);
+        setGpxData(matchedRoute.gpxData ?? null);
+      }
+    } catch (error) {
+      console.log('Failed to load route from LocalStorage: ', error);
+    }
+  }, [locationState, trailID]);
+
   let backButtonLabel = 'Back to all Trail Routes'
   let backButtonTarget = '/routes'
 
@@ -151,6 +224,20 @@ function RouteTrailIdPage() {
 
   return (
     <div className="App" style={{ paddingBottom: '60px' }}>
+      {isOffline && (
+        <div
+          style={{
+            marginBottom: '12px',
+            padding: '10px 12px',
+            borderRadius: '10px',
+            background: '#fef3c7',
+            color: '#92400e',
+            fontSize: '14px'
+          }}
+        >
+          Offline - showing saved route data -
+        </div>
+      )}
         <button
             type="button"
             className="backBtn"
@@ -269,6 +356,26 @@ function RouteTrailIdPage() {
                 }}
             >
                 Delete Trail
+            </button>
+            <button
+              type="button"
+              className="downloadBtn"
+              onClick={handleDownloadGPXFile}
+              style={{
+                border: 'none',
+                background: 'transparent',
+                color: 'var(--blue)',
+                padding: 0,
+                fontWeight: 400,
+                cursor: 'pointer',
+                fontSize: '20px',
+                width: 'max-content',
+                textAlign: 'left',
+                marginBlockEnd: '10px',
+                marginTop: '10px',
+              }}
+            >
+              Download GPX
             </button>
         </div>
     </div>
