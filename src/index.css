@@ -79,6 +79,7 @@
 
 body {
   margin: 0;
+  overflow-y: hidden;
 }
 
 h1,
