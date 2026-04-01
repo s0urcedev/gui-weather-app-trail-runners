@@ -139,19 +139,24 @@ export default function WeatherForecastPanel({ weatherData }: WeatherForecastPan
   const durationHours = Math.floor(duration)
   const durationMinutes = Math.round((duration - durationHours) * 60).toString().padStart(2, '0')
 
-  const chartWidth = 960
-  const chartHeight = 380
-  const labelTopStart = 0
+  const FIXED_X_STEP = 120
+  const chartHeight = 450
+  const labelTopStart = 20
   const labelRowStep = 28
   const paddingTop = 26 + activeGroup.metrics.length * labelRowStep
   const paddingRight = 20
   const paddingBottom = 34
   const paddingLeft = 20
-  const drawableWidth = chartWidth - paddingLeft - paddingRight
-  const drawableHeight = chartHeight - paddingTop - paddingBottom
 
   const forecastLength = forecast.length
-  const xStep = forecastLength > 1 ? drawableWidth / (forecastLength - 1) : 0
+  const minChartWidth = 960
+  const minDrawableWidth = minChartWidth - paddingLeft - paddingRight
+  const requiredDrawableWidth = forecastLength > 1 ? (forecastLength - 1) * FIXED_X_STEP : minDrawableWidth
+  const drawableWidth = Math.max(minDrawableWidth, requiredDrawableWidth)
+  const chartWidth = drawableWidth + paddingLeft + paddingRight
+  const drawableHeight = chartHeight - paddingTop - paddingBottom
+
+  const xStep = forecastLength > 1 ? FIXED_X_STEP : 0
 
   const unitScaleMap = new Map<string, { min: number; max: number; range: number }>()
   activeGroup.metrics.forEach((metric) => {
@@ -364,7 +369,7 @@ export default function WeatherForecastPanel({ weatherData }: WeatherForecastPan
           {forecastLength === 0 ? (
             <p className="weather-panel-empty">No forecast points after current weather.</p>
           ) : (
-            <>
+            <div className="weather-panel-slider-content">
               <svg
                 viewBox={`0 0 ${chartWidth} ${chartHeight}`}
                 className="weather-panel-chart-svg"
@@ -421,6 +426,7 @@ export default function WeatherForecastPanel({ weatherData }: WeatherForecastPan
                             r="5"
                             fill="var(--text-h)"
                             fillOpacity={toneOpacity}
+                            className="weather-panel-point-dot"
                           />
                           <text
                             x={point.x}
@@ -451,7 +457,7 @@ export default function WeatherForecastPanel({ weatherData }: WeatherForecastPan
                   )
                 })}
               </svg>
-            </>
+            </div>
           )}
         </div>
       </div>
