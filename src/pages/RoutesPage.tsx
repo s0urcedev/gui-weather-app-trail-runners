@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom';
 import type { ChangeEvent } from 'react'
+import { createPortal } from 'react-dom';
 import { ImportGPXButton } from '../components/ImportGPXButton';
 import RouteIcon from '../components/icons/RouteIcon';
 import { ImportPlaceholder } from '../components/ImportPlaceholder';
@@ -37,6 +38,13 @@ function RoutesPage() {
 
   // Hold saved routes for the list
   const [savedRouteList, setSavedRouteList] = useState<any[]>([]);
+
+  const handlePopupButtonHover = (
+    event: React.MouseEvent<HTMLButtonElement>,
+    isHovered: boolean
+  ) => {
+    event.currentTarget.style.opacity = isHovered ? '0.7' : '1';
+  };
 
   // Delete route from list
   const handleDeleteRoute = (idToDelete: string | number) => {
@@ -240,10 +248,17 @@ function RoutesPage() {
         <ImportPlaceholder icon={<RouteIcon />} text="Import a route to see it here" />
       )}
 
-      {showPopUp && (
+      {showPopUp && createPortal(
         <div style={{
-          position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh',
-          backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000
+          position: 'fixed',
+          inset: 0,
+          width: '100vw',
+          height: '100vh',
+          backgroundColor: 'rgba(0,0,0,0.5)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000
         }}>
           <div style={{
             backgroundColor: 'white', padding: '24px', borderRadius: '12px', width: '90%', maxWidth: '350px',
@@ -251,38 +266,36 @@ function RoutesPage() {
           }}>
             <h3 style={{ margin: 0, fontSize: '1.25rem' }}>Name Your Route</h3>
             <p style={{ margin: 0, fontSize: '0.9rem', color: '#666' }}>Give this trail a unique name to save it to your list.</p>
-            <input 
-              type="text" 
-              value={routeName} 
+            <input
+              type="text"
+              value={routeName}
               onChange={(e) => setRouteName(e.target.value)}
               placeholder="e.g. Sunday Long Run"
               style={{ padding: '10px', fontSize: '16px', borderRadius: '6px', border: '1px solid #ccc', outline: 'none' }}
               autoFocus
             />
 
-            <label style={{ fontSize: '0.9rem', color: '#666', marginBottom: '-10px', marginTop: '10px' }}>Planned Date (Optional):</label>
-            <input 
-              type="date" 
-              value={routeDate} 
-              onChange={(e) => setRouteDate(e.target.value)} 
-              style={{ padding: '10px', fontSize: '16px', borderRadius: '6px', border: '1px solid #ccc' }} 
-            />
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '10px' }}>
-              <button 
-                onClick={() => setShowPopUp(false)} 
-                style={{ background: 'transparent', color: '#666', border: 'none', cursor: 'pointer', padding: '8px 16px', fontWeight: '500' }}
+              <button
+                onClick={() => setShowPopUp(false)}
+                onMouseEnter={(event) => handlePopupButtonHover(event, true)}
+                onMouseLeave={(event) => handlePopupButtonHover(event, false)}
+                style={{ background: 'transparent', color: '#666', border: 'none', cursor: 'pointer', padding: '8px 16px', fontWeight: '500', transition: 'opacity 0.2s ease' }}
               >
                 Cancel
               </button>
-              <button 
-                onClick={handleSaveRoute} 
-                style={{ background: '#2563eb', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '6px', cursor: 'pointer', fontWeight: '500' }}
+              <button
+                onClick={handleSaveRoute}
+                onMouseEnter={(event) => handlePopupButtonHover(event, true)}
+                onMouseLeave={(event) => handlePopupButtonHover(event, false)}
+                style={{ background: '#2563eb', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '6px', cursor: 'pointer', fontWeight: '500', transition: 'opacity 0.2s ease' }}
               >
                 Save Route
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   )
