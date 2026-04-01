@@ -337,6 +337,26 @@ function RouteTrailIdPage() {
             alignItems: 'center'
         }}>
             <button
+               type="button"
+                className="deleteBtn"
+                onClick={handleDelete}
+                style={{
+                    background: '#3f3fa8',
+                    color: 'white',
+                    fontWeight: 400,
+                    cursor: 'pointer',
+                    fontSize: '1rem',
+                    width: '100%',
+                    textAlign: 'center',
+                    marginBlockEnd: '10px',
+                    marginTop: '0px',
+                    borderRadius: '12px',
+                    padding: '8px 10px',
+                    border: '1px solid #ffffff50',
+            >
+              Download GPX
+            </button>
+            <button
                 type="button"
                 className="deleteBtn"
                 onClick={handleDelete}
@@ -356,26 +376,6 @@ function RouteTrailIdPage() {
                 }}
             >
                 Delete Trail
-            </button>
-            <button
-              type="button"
-              className="downloadBtn"
-              onClick={handleDownloadGPXFile}
-              style={{
-                border: 'none',
-                background: 'transparent',
-                color: 'var(--blue)',
-                padding: 0,
-                fontWeight: 400,
-                cursor: 'pointer',
-                fontSize: '20px',
-                width: 'max-content',
-                textAlign: 'left',
-                marginBlockEnd: '10px',
-                marginTop: '10px',
-              }}
-            >
-              Download GPX
             </button>
         </div>
     </div>
