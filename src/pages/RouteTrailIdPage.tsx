@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import { TrailItem } from '../components/TrailItem'
-import { PastActivityItem } from '../components/PastActivityItem'
 import BackArrowHeadIcon from '../components/icons/BackArrowHeadIcon'
 import { fetchWeatherByCoordinatesMinutely15 } from '../scripts/weather'
 import WeatherForecastPanel from '../components/WeatherForecastPanel'
@@ -46,6 +45,11 @@ function getReferrerPath(referrer: string): string | undefined {
   }
 }
 
+function toDateTimeLocalValue(date: Date): string {
+  const pad = (value: number) => String(value).padStart(2, '0')
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`
+}
+
 function RouteTrailIdPage() {
   const {trailID} = useParams();
   const location = useLocation()
@@ -81,6 +85,7 @@ function RouteTrailIdPage() {
   // default pace set to 6 min/KM
   const [pace, setPace] = useState<number>(6);
   const [paceSec, setPaceSec] = useState<number>(0);
+  const [runStartDateTime, setRunStartDateTime] = useState<string>(() => toDateTimeLocalValue(new Date()));
   const totalPaceInMinutes = pace + (paceSec / 60);
 
   let totalDistance = 0;
@@ -124,7 +129,7 @@ function RouteTrailIdPage() {
     console.log("Calculated 15 minute points for the entire route", points15Min)
 
     // Call weather API for each point
-    fetchWeatherByCoordinatesMinutely15(points15Min).then((data) => {
+    fetchWeatherByCoordinatesMinutely15(points15Min, runStartDateTime).then((data) => {
       setWeatherData(data);
       setIsLoading(false);
     }).catch((error) => {
@@ -203,6 +208,15 @@ function RouteTrailIdPage() {
                 max="59"
               /> sec
             </label>
+            <label style={{ display: 'block', fontSize: '1rem', marginBottom: '14px' }}>
+              Start Date & Time:
+              <input
+                type="datetime-local"
+                value={runStartDateTime}
+                onChange={(e) => setRunStartDateTime(e.target.value)}
+                style={{ borderRadius: '8px', marginLeft: '10px', padding: '5px', fontSize: '1rem' }}
+              />
+            </label>
             <button 
               onClick={handleCalculateWeather}
               disabled={isLoading}
@@ -217,14 +231,14 @@ function RouteTrailIdPage() {
 
         {weatherData && (
           <div style={{ margin: '20px 0' }}>
-            <WeatherForecastPanel weatherData={weatherData} />
+            <WeatherForecastPanel weatherData={weatherData} selectedStartDateTime={runStartDateTime} />
             <button 
               onClick={() => setWeatherData(null)} 
               style={{ padding: '8px 18px', background: '#2563eb', color: 'white', borderRadius: '12px', marginTop: '10px', lineHeight: '1rem', cursor: 'pointer', fontSize: '1rem', fontWeight: 400, transition: 'opacity 0.2s', width: '100%', border: '1px solid #ffffff50', }}
               onMouseEnter={(e) => e.currentTarget.style.opacity = '0.7'}
               onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
             >
-              Change Pace & Recalculate
+              Change Pace or Start Time
             </button>
           </div>
         )}

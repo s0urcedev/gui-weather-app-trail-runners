@@ -97,15 +97,149 @@ export interface WeatherData extends Coordinates {
     weather_label: string;
 }
 
-export async function fetchWeatherByCoordinatesMinutely15(coordinates: Coordinates[]): Promise<WeatherData[]> {
+type HistoricalHourlyData = {
+    time?: string[];
+    temperature_2m?: number[];
+    relative_humidity_2m?: number[];
+    dew_point_2m?: number[];
+    apparent_temperature?: number[];
+    precipitation?: number[];
+    snowfall?: number[];
+    rain?: number[];
+    wind_speed_10m?: number[];
+    wind_direction_10m?: number[];
+    wind_gusts_10m?: number[];
+    visibility?: number[];
+    weather_code?: number[];
+}
+
+function formatDateTimeForApi(dateTime: Date): string {
+    const pad = (value: number) => String(value).padStart(2, '0');
+    const year = dateTime.getFullYear();
+    const month = pad(dateTime.getMonth() + 1);
+    const day = pad(dateTime.getDate());
+    const hours = pad(dateTime.getHours());
+    const minutes = pad(dateTime.getMinutes());
+    return `${year}-${month}-${day}T${hours}:${minutes}`;
+}
+
+function formatDateForApi(dateTime: Date): string {
+    const pad = (value: number) => String(value).padStart(2, '0');
+    const year = dateTime.getFullYear();
+    const month = pad(dateTime.getMonth() + 1);
+    const day = pad(dateTime.getDate());
+    return `${year}-${month}-${day}`;
+}
+
+function toNumber(value: unknown, fallback = 0): number {
+    return typeof value === 'number' && Number.isFinite(value) ? value : fallback;
+}
+
+function findNearestTimeIndex(times: string[], targetTime: Date): number {
+    if (times.length === 0) {
+        return 0;
+    }
+
+    const target = targetTime.getTime();
+    let bestIndex = 0;
+    let bestDistance = Number.POSITIVE_INFINITY;
+
+    for (let i = 0; i < times.length; i++) {
+        const parsed = new Date(times[i]).getTime();
+        if (Number.isNaN(parsed)) {
+            continue;
+        }
+        const distance = Math.abs(parsed - target);
+        if (distance < bestDistance) {
+            bestDistance = distance;
+            bestIndex = i;
+        }
+    }
+
+    return bestIndex;
+}
+
+async function fetchHistoricalWeatherByCoordinates(coordinates: Coordinates[], runStart: Date): Promise<WeatherData[]> {
+    const durationMinutes = Math.max(0, (coordinates.length - 1) * 15);
+    const runEnd = new Date(runStart.getTime() + durationMinutes * 60_000);
+    const startDate = formatDateForApi(runStart);
+    const endDate = formatDateForApi(runEnd);
+
+    const results: WeatherData[] = [];
+
+    for (let i = 0; i < coordinates.length; i++) {
+        const coordinate = coordinates[i];
+        const pointTime = new Date(runStart.getTime() + i * 15 * 60_000);
+        const resp = await fetch(`https://archive-api.open-meteo.com/v1/era5?latitude=${coordinate.latitude}&longitude=${coordinate.longitude}&start_date=${startDate}&end_date=${endDate}&hourly=temperature_2m,relative_humidity_2m,dew_point_2m,apparent_temperature,precipitation,snowfall,rain,wind_speed_10m,wind_direction_10m,wind_gusts_10m,visibility,weather_code&timezone=auto`);
+        if (!resp.ok) {
+            throw new Error('Unable to fetch historical weather');
+        }
+
+        const data = await resp.json() as {
+            latitude?: number;
+            longitude?: number;
+            elevation?: number;
+            hourly?: HistoricalHourlyData;
+        };
+        const hourly = data.hourly ?? {};
+        const times = hourly.time ?? [];
+        const nearestIndex = findNearestTimeIndex(times, pointTime);
+        const weatherCode = toNumber(hourly.weather_code?.[nearestIndex], -1);
+
+        results.push({
+            latitude: toNumber(data.latitude, coordinate.latitude),
+            longitude: toNumber(data.longitude, coordinate.longitude),
+            time: times[nearestIndex] ?? formatDateTimeForApi(pointTime),
+            elevation: toNumber(data.elevation, 0),
+            temperature_2m: toNumber(hourly.temperature_2m?.[nearestIndex]),
+            relative_humidity_2m: toNumber(hourly.relative_humidity_2m?.[nearestIndex]),
+            dew_point_2m: toNumber(hourly.dew_point_2m?.[nearestIndex]),
+            apparent_temperature: toNumber(hourly.apparent_temperature?.[nearestIndex]),
+            sunshine_duration: 0,
+            precipitation: toNumber(hourly.precipitation?.[nearestIndex]),
+            snowfall: toNumber(hourly.snowfall?.[nearestIndex]),
+            rain: toNumber(hourly.rain?.[nearestIndex]),
+            showers: 0,
+            wind_speed_10m: toNumber(hourly.wind_speed_10m?.[nearestIndex]),
+            wind_direction_10m: toNumber(hourly.wind_direction_10m?.[nearestIndex]),
+            wind_gusts_10m: toNumber(hourly.wind_gusts_10m?.[nearestIndex]),
+            visibility: toNumber(hourly.visibility?.[nearestIndex]),
+            weather_code: weatherCode,
+            weather_label: getWeatherLabel(weatherCode),
+        });
+    }
+
+    return results;
+}
+
+export async function fetchWeatherByCoordinatesMinutely15(coordinates: Coordinates[], runStartTime?: string): Promise<WeatherData[]> {
     if (coordinates.length === 0) {
         return [];
     }
+
+    let normalizedStartTime = runStartTime;
+    if (runStartTime) {
+        const parsedStartTime = new Date(runStartTime);
+        if (!Number.isNaN(parsedStartTime.getTime())) {
+            normalizedStartTime = formatDateTimeForApi(parsedStartTime);
+        }
+    }
+
+    const parsedRunStart = normalizedStartTime ? new Date(normalizedStartTime) : null;
+    const useHistorical = Boolean(parsedRunStart && parsedRunStart.getTime() < Date.now());
     
-    const cacheKey = `weather_${coordinates[0].latitude}_${coordinates[0].longitude}_${coordinates.length}`
+    const cacheKey = `weather_${useHistorical ? 'historical' : 'forecast'}_${coordinates[0].latitude}_${coordinates[0].longitude}_${coordinates.length}_${normalizedStartTime ?? 'auto'}`
     const cached = apiCache.get<WeatherData[]>(cacheKey)
     if (cached) return cached
-    const resp = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${coordinates[0].latitude}&longitude=${coordinates[0].longitude}&minutely_15=temperature_2m,relative_humidity_2m,dew_point_2m,apparent_temperature,sunshine_duration,precipitation,snowfall,rain,showers,wind_speed_10m,wind_direction_10m,wind_gusts_10m,visibility,weather_code&forecast_minutely_15=${coordinates.length + 1}&timezone=auto`);
+
+    if (useHistorical && parsedRunStart) {
+        const historical = await fetchHistoricalWeatherByCoordinates(coordinates, parsedRunStart)
+        apiCache.set(cacheKey, historical)
+        return historical
+    }
+
+    const startTimeQuery = normalizedStartTime ? `&start_minutely_15=${encodeURIComponent(normalizedStartTime)}` : '';
+    const resp = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${coordinates[0].latitude}&longitude=${coordinates[0].longitude}&minutely_15=temperature_2m,relative_humidity_2m,dew_point_2m,apparent_temperature,sunshine_duration,precipitation,snowfall,rain,showers,wind_speed_10m,wind_direction_10m,wind_gusts_10m,visibility,weather_code&forecast_minutely_15=${coordinates.length + 1}${startTimeQuery}&timezone=auto`);
     if (!resp.ok) throw new Error('Unable to fetch');
     const data = await resp.json();
     const times = data.minutely_15.time;

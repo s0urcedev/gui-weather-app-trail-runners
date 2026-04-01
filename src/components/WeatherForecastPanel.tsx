@@ -5,6 +5,7 @@ import './WeatherForecastPanel.css'
 
 type WeatherForecastPanelProps = {
   weatherData: WeatherData[]
+  selectedStartDateTime?: string
 }
 
 type MetricKey =
@@ -99,6 +100,25 @@ function formatDate(time: string): string {
     return date.toLocaleDateString([], { month: 'numeric', day: 'numeric', year: 'numeric' })
 }
 
+function formatPickedDateTime(time?: string): { date: string; time: string } {
+  if (!time) {
+    return { date: 'Now', time: '-' }
+  }
+
+  const date = new Date(time)
+  if (Number.isNaN(date.getTime())) {
+    return {
+      date: time.length >= 10 ? time.slice(0, 10) : time,
+      time: time.length >= 16 ? time.slice(11, 16) : '-',
+    }
+  }
+
+  return {
+    date: date.toLocaleDateString([], { month: 'numeric', day: 'numeric', year: 'numeric' }),
+    time: date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+  }
+}
+
 function formatValue(value: number): string {
   if (Number.isInteger(value)) {
     return value.toString()
@@ -124,7 +144,7 @@ function getSeriesToneOpacity(index: number): number {
   return opacities[index] ?? 0.2
 }
 
-export default function WeatherForecastPanel({ weatherData }: WeatherForecastPanelProps) {
+export default function WeatherForecastPanel({ weatherData, selectedStartDateTime }: WeatherForecastPanelProps) {
   const [activeGroupIndex, setActiveGroupIndex] = useState(0)
 
   if (weatherData.length === 0) {
@@ -138,6 +158,7 @@ export default function WeatherForecastPanel({ weatherData }: WeatherForecastPan
   const duration = 0.25*(weatherData.length-1)
   const durationHours = Math.floor(duration)
   const durationMinutes = Math.round((duration - durationHours) * 60).toString().padStart(2, '0')
+  const pickedStart = formatPickedDateTime(selectedStartDateTime)
 
   const FIXED_X_STEP = 120
   const chartHeight = 450
@@ -258,6 +279,10 @@ export default function WeatherForecastPanel({ weatherData }: WeatherForecastPan
         </div>
         <div className="weather-panel-current-label">
           {current.weather_label}
+        </div>
+
+        <div className="weather-panel-picked-start" aria-label="Selected run start time">
+          Selected start: <strong>{pickedStart.date} {pickedStart.time}</strong>
         </div>
 
         <div className="weather-panel-current-metrics">
