@@ -1,5 +1,5 @@
 import React from 'react';
-import './ImportGPXButton.css';
+import '../styles/ImportGPXButton.css';
 
 interface ImportGPXButtonProps {
     text: string;

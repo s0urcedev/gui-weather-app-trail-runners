@@ -1,5 +1,7 @@
 .page-fade-transition {
   width: 100%;
+  max-width: 1040px;
+  margin-inline: auto;
   animation: pageFadeIn 220ms ease-out both;
 }
 

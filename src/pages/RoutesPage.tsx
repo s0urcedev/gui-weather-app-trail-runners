@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom';
 import type { ChangeEvent } from 'react'
 import { createPortal } from 'react-dom';
@@ -7,7 +7,7 @@ import RouteIcon from '../components/icons/RouteIcon';
 import { ImportPlaceholder } from '../components/ImportPlaceholder';
 import { TrailItem } from '../components/TrailItem';
 import ThemeModeToggle from '../components/ThemeModeToggle';
-import '../components/RoutesPage.css';
+import '../styles/RoutesPage.css';
 
 // Formula to calculate distance between two coordinates (Haversine formula)
 function getDistanceFromLatLon(lat1: number, lon1: number, lat2: number, lon2: number): number {
@@ -38,7 +38,24 @@ function RoutesPage() {
   } | null>(null);
 
   // Hold saved routes for the list
-  const [savedRouteList, setSavedRouteList] = useState<any[]>([]); // Initialize savedRouteList state
+  const [savedRouteList, setSavedRouteList] = useState<any[]>(() => {
+    const storedRoutes = localStorage.getItem('savedRoutes');
+    if (storedRoutes) {
+      try {
+        const allRoutes = JSON.parse(storedRoutes);
+        // Keep only the routes that have valid GPX data
+        return allRoutes.filter((route: any) => {
+          if (!route.date) return true;
+          return new Date(route.date).getTime() >= new Date().setHours(0, 0, 0, 0);
+        });
+      } catch (error) {
+        console.error('Failed to parse saved routes from localStorage:', error);
+        return [];
+      }
+    } else {
+      return [];
+    }
+  });
 
   const handlePopupButtonHover = (
     event: React.MouseEvent<HTMLButtonElement>,
@@ -46,25 +63,6 @@ function RoutesPage() {
   ) => {
     event.currentTarget.style.opacity = isHovered ? '0.7' : '1';
   };
-
-  // Load GPX data
-  useEffect(() => {
-    const storedRoutes = localStorage.getItem('savedRoutes');
-    if (storedRoutes) {
-      try {
-        const allRoutes = JSON.parse(storedRoutes);
-        // Keep only the routes that have valid GPX data
-        const upcomingRoutes = allRoutes.filter((route: any) => {
-          if (!route.date) return true;
-          return new Date(route.date).getTime() >= new Date().setHours(0, 0, 0, 0);
-      });
-
-      setSavedRouteList(upcomingRoutes);
-    } catch (error) {
-      console.error('Failed to parse saved routes from localStorage:', error);
-    }
-  }
-}, []);
 
   // Trigger hidden input when button is clicked
   const handleImportClick = (e: React.MouseEvent) => {
@@ -207,11 +205,14 @@ function RoutesPage() {
     const storedRoutes = localStorage.getItem('savedRoutes');
     if (storedRoutes) {
       let routes = JSON.parse(storedRoutes);
+
+      // Remove from localStorage
       routes = routes.filter((route: any) => route.id !== idToDelete.toString());
       localStorage.setItem('savedRoutes', JSON.stringify(routes));
+      
       setSavedRouteList(prevList => prevList.filter(route => route.id !== idToDelete.toString()));
-    }
-  };
+      }
+    };
 
   return (
     <div className="App">
@@ -231,7 +232,6 @@ function RoutesPage() {
           <TrailItem
             key={route.id}
             name={route.name}
-            location="Saved Route"
             distance={route.distance || 0}
             height={route.height || 0}
             time={route.time || 0}

@@ -1,0 +1,45 @@
+.weather-panel-recommendations {
+  margin-top: 6px;
+  border-top: 1px solid var(--border);
+  padding-top: 10px;
+  display: grid;
+  gap: 2px;
+}
+
+.weather-panel-recommendations-title {
+  margin: 0;
+  color: var(--text-h);
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.weather-panel-recommendations-conditions,
+.weather-panel-recommendations-list {
+  margin: 0;
+  padding-left: 18px;
+  display: grid;
+}
+
+.weather-panel-recommendations-conditions li,
+.weather-panel-recommendations-list li {
+  color: var(--text);
+  line-height: 1.35;
+}
+
+.weather-panel-recommendations-groups {
+  display: grid;
+  gap: 8px;
+}
+
+.weather-panel-recommendations-subtitle {
+  margin: 0 0 4px;
+  color: var(--text-h);
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+
+.weather-panel-recommendations-empty {
+  margin: 0;
+  color: var(--text);
+  font-size: 0.9rem;
+}

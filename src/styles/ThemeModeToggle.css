@@ -1,0 +1,14 @@
+.theme-toggle-btn {
+    width: 40px;
+    height: 40px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 100px;
+    border: 1px solid var(--border);
+    background: var(--bg);
+    color: var(--text-h);
+    cursor: pointer;
+    font: inherit;
+    transition: opacity 0.2s ease, transform 0.12s ease;
+}

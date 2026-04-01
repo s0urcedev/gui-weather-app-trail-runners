@@ -109,6 +109,7 @@
     justify-content: center;
     align-items: center;
     width: min(1056px, 100%);
+    gap: 10px;
 }
 
 .deleteBtn {
@@ -127,15 +128,16 @@
 }
 
 .downloadBtn {
-    border: none;
-    background: transparent;
-    color: var(--blue);
-    padding: 0;
+    background: #3f3fa8;
+    color: white;
     font-weight: 400;
     cursor: pointer;
-    font-size: 20px;
-    width: max-content;
-    text-align: left;
+    font-size: 1rem;
+    width: 100%;
+    text-align: center;
     margin-block-end: 10px;
-    margin-top: 10px;
+    margin-top: 0px;
+    border-radius: 12px;
+    padding: 8px 10px;
+    border: 1px solid #ffffff50;
 }

@@ -1,5 +1,5 @@
 import RouteMinimap from './RouteMinimap'
-import './TrailItem.css'
+import '../styles/TrailItem.css'
 import ClockIcon from './icons/ClockIcon'
 import HorizontalArrowsIcon from './icons/HorizontalArrowsIcon'
 import LineUpwardIcon from './icons/LineUpwardIcon'
@@ -7,7 +7,6 @@ import { Link } from 'react-router-dom';
 
 type TrailItemProps = {
     name: string
-    location: string
     distance: number
     height: number
     time: number
@@ -18,7 +17,7 @@ type TrailItemProps = {
     onDelete?: (id: string | number) => void
 }
 
-export function TrailItem({ name, location, distance, height, time, trailID, showViewBtn = true, gpxData, coordinates, onDelete }: TrailItemProps) {
+export function TrailItem({ name, distance, height, time, trailID, showViewBtn = true, gpxData, coordinates, onDelete }: TrailItemProps) {
     return (
         <article className="trail-item" aria-label={`Trail ${name}`}>
             <div className="trail-item-main">

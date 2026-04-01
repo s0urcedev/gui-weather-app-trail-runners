@@ -1,11 +1,7 @@
 import { Link, useLocation } from 'react-router-dom'
 import CloudWithSunIcon from './icons/CloudWithSunIcon'
-import ProfileIcon from './icons/ProfileIcon'
 import RouteIcon from './icons/RouteIcon'
-import './Tabbar.css'
-import CalWithTickIcon from './icons/CalWithTickIcon'
-import BellIcon from './icons/BellIcon'
-
+import '../styles/Tabbar.css'
 type TabConfig = {
     path: string
     label: string
@@ -14,8 +10,7 @@ type TabConfig = {
 
 const tabs: TabConfig[] = [
     { path: '/routes', label: 'Routes', icon: <RouteIcon size={24} strokeWidth={2.5} /> },
-    { path: '/', label: 'Up Next', icon: <CloudWithSunIcon size={24} strokeWidth={3} /> },
-    { path: '/alerts', label: 'Alerts', icon: <BellIcon size={24} strokeWidth={2.5} /> },
+    { path: '/', label: 'Up Next', icon: <CloudWithSunIcon size={24} strokeWidth={3} /> }
 ]
 
 export default function Tabbar() {

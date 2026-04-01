@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import type { LatLngBoundsExpression, LatLngTuple } from 'leaflet'
 import { MapContainer, Polyline, TileLayer, useMap } from 'react-leaflet'
 import 'leaflet/dist/leaflet.css'
+import '../styles/RouteMinimap.css'
 
 type RouteMinimapProps = {
 	gpxData: File | string | ArrayBuffer | null | undefined
@@ -164,22 +165,7 @@ export default function RouteMinimap({
 	if (parseState.error) {
 		return (
 			<div
-				className={className}
-				style={{
-					width: '100%',
-					height: '100%',
-					minHeight: 160,
-					borderRadius: 12,
-					backgroundColor: '#f8fafc',
-					border: '1px solid #e2e8f0',
-					display: 'grid',
-					placeItems: 'center',
-					color: '#334155',
-					fontSize: 14,
-					textAlign: 'center',
-					padding: 16,
-					boxSizing: 'border-box',
-				}}
+				className={className + ' ' + 'state'}
 			>
 				{parseState.error}
 			</div>
@@ -189,19 +175,7 @@ export default function RouteMinimap({
 	if (parseState.loading) {
 		return (
 			<div
-				className={className}
-				style={{
-					width: '100%',
-					height: '100%',
-					minHeight: 160,
-					borderRadius: 12,
-					backgroundColor: '#f8fafc',
-					border: '1px solid #e2e8f0',
-					display: 'grid',
-					placeItems: 'center',
-					color: '#334155',
-					fontSize: 14,
-				}}
+				className={className + ' ' + 'state'}
 			>
 				Loading GPX route...
 			</div>
@@ -211,19 +185,7 @@ export default function RouteMinimap({
 	if (parseState.points.length === 0) {
 		return (
 			<div
-				className={className}
-				style={{
-					width: '100%',
-					height: '100%',
-					// minHeight: 160,
-					borderRadius: '0px 12px',
-					backgroundColor: '#f8fafc',
-					border: '1px dashed #cbd5e1',
-					display: 'grid',
-					placeItems: 'center',
-					color: '#64748b',
-					fontSize: 14,
-				}}
+				className={className + ' ' + 'state'}
 			>
 				Error loading GPX Route preview
 			</div>
@@ -232,15 +194,7 @@ export default function RouteMinimap({
 
 	return (
 		<div
-			className={className}
-			style={{
-				width: '100%',
-				height: '100%',
-				// minHeight: 160,
-                borderRadius: '0px 12px',
-				overflow: 'hidden',
-				border: '1px solid #dbe3f0',
-			}}
+			className={className + ' ' + 'map-container-div'}
 		>
 			<MapContainer
 				center={center}

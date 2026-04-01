@@ -1,0 +1,47 @@
+main {
+    text-align: left;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+}
+
+.location-form {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+
+.location-form input {
+    flex: 1;
+    padding: 10px 12px;
+    border-radius: 8;
+    border: 1px solid var(--border);
+    background: var(--bg);
+    color: var(--text-h);
+    font: inherit;
+}
+
+.location-form button {
+    padding: 10px 14px;
+    border: 1px solid #ffffff50;
+    border-radius: 8px;
+    background: #009DFF;
+    color: white;
+    font: inherit;
+    transition: opacity 0.2s ease;
+}
+
+.current-location-button {
+    padding: 10px 14px;
+    border: 1px solid #ffffff50;
+    border-radius: 8px;
+    background: #009DFF;
+    color: white;
+    font: inherit;
+    margin-bottom: 16px;
+    transition: opacity 0.2s ease;
+}

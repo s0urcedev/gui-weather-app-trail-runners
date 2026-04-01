@@ -1,5 +1,5 @@
 import React from 'react';
-import './ImportPlaceholder.css';
+import '../styles/ImportPlaceholder.css';
 
 interface ImportPlaceholderProps {
     icon: React.ReactNode;

@@ -1,109 +1,92 @@
-import { useState } from 'react'
+import { useState } from 'react';
 import {
   fetchWeatherByCoordinatesMinutely15,
   getCoordinatesFromLocation,
   getUserCoordinates,
-} from '../scripts/weather'
-import WeatherForecastPanel from '../components/WeatherForecastPanel'
-import ThemeModeToggle from '../components/ThemeModeToggle'
-import type { FormEvent } from 'react'
-import type { WeatherData } from '../scripts/weather'
+} from '../scripts/weather';
+import WeatherForecastPanel from '../components/WeatherForecastPanel';
+import ThemeModeToggle from '../components/ThemeModeToggle';
+import type { FormEvent } from 'react';
+import type { WeatherData } from '../scripts/weather';
+import '../styles/HomePage.css';
 
 
 export default function HomePage() {
-  const [location, setLocation] = useState('')
-  const [weather, setWeather] = useState<WeatherData[] | null>(null)
-  const [error, setError] = useState<string | null>(null)
-  const [isLoading, setIsLoading] = useState(false)
+  const [location, setLocation] = useState('');
+  const [weather, setWeather] = useState<WeatherData[] | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault()
+    event.preventDefault();
 
-    const trimmedLocation = location.trim()
+    const trimmedLocation = location.trim();
 
     if (!trimmedLocation) {
-      setError('Please enter a location.')
-      setWeather(null)
+      setError('Please enter a location.');
+      setWeather(null);
       return
     }
 
-    setIsLoading(true)
-    setError(null)
+    setIsLoading(true);
+    setError(null);
 
     try {
-      const coords = await getCoordinatesFromLocation(trimmedLocation)
+      const coords = await getCoordinatesFromLocation(trimmedLocation);
       const nextWeather = await fetchWeatherByCoordinatesMinutely15(Array(13).fill(coords));
-      setWeather(nextWeather)
+      setWeather(nextWeather);
     } catch (caughtError) {
-      const message = caughtError instanceof Error ? caughtError.message : 'Failed to fetch weather.'
-      setError(message)
-      setWeather(null)
+      const message = caughtError instanceof Error ? caughtError.message : 'Failed to fetch weather.';
+      setError(message);
+      setWeather(null);
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
   }
 
   async function handleUseCurrentLocation() {
-    setIsLoading(true)
-    setError(null)
+    setIsLoading(true);
+    setError(null);
 
     try {
-      const coords = await getUserCoordinates()
+      const coords = await getUserCoordinates();
       const nextWeather = await fetchWeatherByCoordinatesMinutely15(Array(13).fill(coords));
-      setWeather(nextWeather)
+      setWeather(nextWeather);
     } catch (caughtError) {
-      const message = caughtError instanceof Error ? caughtError.message : 'Failed to fetch weather.'
-      setError(message)
-      setWeather(null)
+      const message = caughtError instanceof Error ? caughtError.message : 'Failed to fetch weather.';
+      setError(message);
+      setWeather(null);
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
   }
 
   return (
-    <main style={{textAlign: 'left' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
+    <main>
+      <div className='header'>
         <h1>Current Weather</h1>
         <ThemeModeToggle />
       </div>
 
-      <form onSubmit={handleSubmit} style={{ display: 'flex', gap: 8, marginBottom: 10 }}>
+      <form onSubmit={handleSubmit} className='location-form'>
         <input
           type="text"
           value={location}
           onChange={(event) => setLocation(event.target.value)}
           placeholder="Enter city (e.g. Berlin or Paris,FR)"
           aria-label="Location"
-          style={{
-            flex: 1,
-            padding: '10px 12px',
-            borderRadius: 8,
-            border: '1px solid var(--border)',
-            background: 'var(--bg)',
-            color: 'var(--text-h)',
-            font: 'inherit',
-          }}
         />
 
         <button
           type="submit"
           disabled={isLoading}
-          style={{
-            padding: '10px 14px',
-            borderRadius: 8,
-            border: '1px solid #ffffff50',
-            background: '#009DFF',
-            color: 'white',
-            cursor: isLoading ? 'not-allowed' : 'pointer',
-            font: 'inherit',
-            transition: 'opacity 0.2s ease',
-          }}
           onMouseEnter={(event) => {
             event.currentTarget.style.opacity = '0.7'
           }}
           onMouseLeave={(event) => {
             event.currentTarget.style.opacity = '1'
           }}
+          style={{cursor: isLoading ? 'not-allowed' : 'pointer'}}
         >
           {isLoading ? 'Loading...' : 'Get weather'}
         </button>
@@ -113,17 +96,8 @@ export default function HomePage() {
         type="button"
         onClick={handleUseCurrentLocation}
         disabled={isLoading}
-        style={{
-          padding: '10px 14px',
-          borderRadius: 8,
-          border: '1px solid #ffffff50',
-          background: '#009DFF',
-          color: 'white',
-          cursor: isLoading ? 'not-allowed' : 'pointer',
-          font: 'inherit',
-          marginBottom: 16,
-          transition: 'opacity 0.2s ease',
-        }}
+        className="current-location-button"
+        style={{cursor: isLoading ? 'not-allowed' : 'pointer'}}
         onMouseEnter={(event) => {
           event.currentTarget.style.opacity = '0.7'
         }}

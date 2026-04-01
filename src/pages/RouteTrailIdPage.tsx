@@ -4,7 +4,7 @@ import { TrailItem } from '../components/TrailItem'
 import BackArrowHeadIcon from '../components/icons/BackArrowHeadIcon'
 import { fetchWeatherByCoordinatesMinutely15 } from '../scripts/weather'
 import WeatherForecastPanel from '../components/WeatherForecastPanel'
-import '../components/RouteTrailIdPage.css'
+import '../styles/RouteTrailIdPage.css'
 
 type RouteLocationState = {
   fromPath?: string;
@@ -27,35 +27,16 @@ function getDistanceFromLatLon(lat1: number, lon1: number, lat2: number, lon2: n
   return R * c;
 }
 
-function getReferrerPath(referrer: string): string | undefined {
-  if (!referrer) {
-    return undefined
-  }
-
-  try {
-    const referrerUrl = new URL(referrer)
-    const currentOrigin = window.location.origin
-
-    if (referrerUrl.origin !== currentOrigin) {
-      return undefined
-    }
-
-    return referrerUrl.pathname
-  } catch {
-    return undefined
-  }
-}
-
 function toDateTimeLocalValue(date: Date): string {
-  const pad = (value: number) => String(value).padStart(2, '0')
-  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`
+  const pad = (value: number) => String(value).padStart(2, '0');
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
 }
 
 function RouteTrailIdPage() {
   const {trailID} = useParams();
-  const location = useLocation()
-  const navigate = useNavigate()
-  const locationState = location.state as RouteLocationState | null
+  const location = useLocation();
+  const navigate = useNavigate();
+  const locationState = location.state as RouteLocationState | null;
 
   // Delete function for trail
   const handleDelete = () => {
@@ -66,7 +47,7 @@ function RouteTrailIdPage() {
     if (storedRoutes && trailID) {
       let routes = JSON.parse(storedRoutes);
       // Filter out trails that match the current trailID
-      routes = routes.filter((route: any) => route.id !== trailID);
+      routes = routes.filter((route: { id: string }) => route.id !== trailID);
       // Update memory with new routes
       localStorage.setItem('savedRoutes', JSON.stringify(routes));
 
@@ -75,14 +56,31 @@ function RouteTrailIdPage() {
     }
   };
 
-  const previousPath = locationState?.fromPath ?? getReferrerPath(document.referrer)
+  let routeName: string = 'Uploaded Trail';
+  let routeCoordinates: { latitude: number; longitude: number; elevation?: number }[] = [];
+  let gpxData: string | null = null;
+  
+  if (locationState?.coordinates && locationState.coordinates.length > 0) {
+    routeName = locationState?.routeName ?? 'Uploaded Trail'
+    routeCoordinates = locationState?.coordinates ?? [];
+    gpxData = locationState?.gpxData || null;
+  } else {
+    const storedRoutes = localStorage.getItem('savedRoutes');
+    if (storedRoutes && trailID) {
+      try {
+        const routes = JSON.parse(storedRoutes);
+        const matchedRoute = routes.find((route: any) => route.id == trailID);
 
-  // list of all coordinates from GPX file
-  const [routeName, setRouteName] = useState('Uploaded Trail');
-  const [routeCoordinates, setRouteCoordinates] = useState<
-    { latitude: number; longitude: number; elevation?: number }[]
-  >([]);
-  const [gpxData, setGpxData] = useState<string | null>(null);
+        if (matchedRoute) {
+          routeName = matchedRoute.name ?? 'Uploaded Trail';
+          routeCoordinates = matchedRoute.coordinates ?? [];
+          gpxData = matchedRoute.gpxData ?? null;
+        }
+      } catch (error) {
+        console.log('Failed to load route from LocalStorage: ', error);
+      }
+    }
+  }
 
   const [weatherData, setWeatherData] = useState<any[] | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -101,8 +99,7 @@ function RouteTrailIdPage() {
       );
     
     totalElevation += Math.max(0, (routeCoordinates[i].elevation || 0)- (routeCoordinates[i-1].elevation || 0));
-
-    }
+  }
 
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
 
@@ -153,7 +150,7 @@ function RouteTrailIdPage() {
     console.log("Calculated 15 minute points for the entire route", points15Min)
 
     // Call weather API for each point
-    fetchWeatherByCoordinatesMinutely15(points15Min, runStartDateTime).then((data) => {
+    fetchWeatherByCoordinatesMinutely15(points15Min, new Date(runStartDateTime)).then((data) => {
       setWeatherData(data);
       setIsLoading(false);
     }).catch((error) => {
@@ -185,44 +182,6 @@ function RouteTrailIdPage() {
     window.URL.revokeObjectURL(url);
   };
 
-  useEffect(() => {
-    if (locationState?.coordinates && locationState.coordinates.length > 0) {
-      setRouteName(locationState.routeName ?? 'Uploaded Trail');
-      setRouteCoordinates(locationState.coordinates);
-      setGpxData(locationState.gpxData ?? null);
-      return;
-    }
-
-    if (!trailID) return;
-
-    const storedRoutes = localStorage.getItem('savedRoutes');
-    if (!storedRoutes) return;
-
-    try {
-      const routes = JSON.parse(storedRoutes);
-      const matchedRoute = routes.find((route: any) => route.id == trailID);
-
-      if (matchedRoute) {
-        setRouteName(matchedRoute.name ?? 'Uploaded Trail');
-        setRouteCoordinates(matchedRoute.coordinates ?? []);
-        setGpxData(matchedRoute.gpxData ?? null);
-      }
-    } catch (error) {
-      console.log('Failed to load route from LocalStorage: ', error);
-    }
-  }, [locationState, trailID]);
-
-  let backButtonLabel = 'Back to all Trail Routes'
-  let backButtonTarget = '/routes'
-
-  if (previousPath === '/activities') {
-    backButtonLabel = 'Back to Completed Activities'
-    backButtonTarget = '/activities'
-  } else if (/^\/activities\/[^/]+$/.test(previousPath ?? '')) {
-    backButtonLabel = 'Back to Completed Activity'
-    backButtonTarget = previousPath as string
-  }
-
   return (
     <div className="App trailPage">
       {isOffline && (
@@ -233,14 +192,13 @@ function RouteTrailIdPage() {
         <button
             type="button"
             className="backBtn"
-            onClick={() => navigate(backButtonTarget)}
+            onClick={() => navigate('/routes')}
         >
             <BackArrowHeadIcon />
-            {backButtonLabel}
+            Back to all Trail Routes
         </button>
         <TrailItem
             name={routeName}
-            location="Uploaded File"
             distance={Number(totalDistance.toFixed(2))}
             height={Math.round(totalElevation)}
             time={Math.round(totalDistance * totalPaceInMinutes)}
@@ -274,6 +232,7 @@ function RouteTrailIdPage() {
               <input
                 type="datetime-local"
                 value={runStartDateTime}
+                max={toDateTimeLocalValue(new Date((new Date()).getTime() + 14 * 24 * 60 * 60 * 1000))}
                 onChange={(e) => setRunStartDateTime(e.target.value)}
                 className = "forecastInputDate"
               />
@@ -292,7 +251,7 @@ function RouteTrailIdPage() {
 
         {weatherData && (
           <div className = "weatherDataContainer">
-            <WeatherForecastPanel weatherData={weatherData} selectedStartDateTime={runStartDateTime} />
+            <WeatherForecastPanel weatherData={weatherData} />
             <button 
               onClick={() => setWeatherData(null)} 
               className = "primaryBtn fullWidthBtn"
@@ -307,22 +266,8 @@ function RouteTrailIdPage() {
         <div className = "footer">
             <button
                type="button"
-                className="deleteBtn"
-                onClick={handleDelete}
-                style={{
-                    background: '#3f3fa8',
-                    color: 'white',
-                    fontWeight: 400,
-                    cursor: 'pointer',
-                    fontSize: '1rem',
-                    width: '100%',
-                    textAlign: 'center',
-                    marginBlockEnd: '10px',
-                    marginTop: '0px',
-                    borderRadius: '12px',
-                    padding: '8px 10px',
-                    border: '1px solid #ffffff50',
-                }}
+                className="downloadBtn"
+                onClick={handleDownloadGPXFile}
             >
               Download GPX
             </button>
