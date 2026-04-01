@@ -30,15 +30,35 @@ export function getUserCoordinates(): Promise<Coordinates> {
     }
 
     return new Promise<Coordinates>((resolve, reject) => {
+        const timeout = setTimeout(() => {
+            reject(new Error('Geolocation request timed out. Make sure you:\n1. Are on HTTPS or localhost\n2. Granted location permission to the browser\n3. Have location services enabled on your device'));
+        }, 10000); // 10 second timeout
+
         navigator.geolocation.getCurrentPosition(
             (position) => {
+                clearTimeout(timeout);
                 resolve({
                     latitude: position.coords.latitude,
                     longitude: position.coords.longitude,
                 });
             },
             (error) => {
-                reject(new Error(error.message || 'Unable to get current location.'));
+                clearTimeout(timeout);
+                let message = 'Unable to get current location.';
+                // Map geolocation API error codes to user-friendly messages
+                if (error.code === 1) {
+                    message = 'Location permission denied. Please enable location access for this site.';
+                } else if (error.code === 2) {
+                    message = 'Location unavailable. Check if location services are enabled.';
+                } else if (error.code === 3) {
+                    message = 'Geolocation request timed out.';
+                }
+                reject(new Error(message));
+            },
+            {
+                enableHighAccuracy: false, // Use WiFi-based positioning (faster, less accurate)
+                timeout: 8000, // Browser timeout before error callback
+                maximumAge: 5 * 60 * 1000, // Allow cached location up to 5 minutes
             }
         );
     });
