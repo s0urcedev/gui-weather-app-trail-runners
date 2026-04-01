@@ -1,4 +1,4 @@
-import { Route, Routes, useMatch } from 'react-router-dom'
+import { Route, Routes, useLocation, useMatch } from 'react-router-dom'
 import AboutPage from './pages/AboutPage'
 import HomePage from './pages/HomePage'
 import RoutesPage from './pages/RoutesPage'
@@ -10,6 +10,7 @@ import RouteTrailIdPage from './pages/RouteTrailIdPage'
 
 function App() {
   const isTrailDetailRoute = Boolean(useMatch('/routes/:trailID'))
+  const location = useLocation()
 
   return (
     <>
@@ -18,15 +19,17 @@ function App() {
         maxWidth: '100%',
         width: '1040px',
       }}>
-        <Routes>
-          <Route path="/routes" element={<RoutesPage />} />
-          <Route path="/routes/:trailID" element={<RouteTrailIdPage />} />
-          <Route path="/activities" element={<ActivitiesPage />} />
-          <Route path="/" element={<HomePage />} />
-          <Route path="/alerts" element={<AlertsPage />} />
-          <Route path="/about" element={<AboutPage />} />
-          <Route path="*" element={<h1>404</h1>} />
-        </Routes>
+        <div className="page-fade-transition" key={location.pathname}>
+          <Routes location={location}>
+            <Route path="/routes" element={<RoutesPage />} />
+            <Route path="/routes/:trailID" element={<RouteTrailIdPage />} />
+            <Route path="/activities" element={<ActivitiesPage />} />
+            <Route path="/" element={<HomePage />} />
+            <Route path="/alerts" element={<AlertsPage />} />
+            <Route path="/about" element={<AboutPage />} />
+            <Route path="*" element={<h1>404</h1>} />
+          </Routes>
+        </div>
       </div>
       {!isTrailDetailRoute && <Tabbar />}
     </>
