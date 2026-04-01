@@ -103,9 +103,11 @@ type HistoricalHourlyData = {
     relative_humidity_2m?: number[];
     dew_point_2m?: number[];
     apparent_temperature?: number[];
+    sunshine_duration?: number[];
     precipitation?: number[];
     snowfall?: number[];
     rain?: number[];
+    showers?: number[];
     wind_speed_10m?: number[];
     wind_direction_10m?: number[];
     wind_gusts_10m?: number[];
@@ -221,6 +223,59 @@ async function fetchHistoricalWeatherByCoordinates(coordinates: Coordinates[], r
     return results;
 }
 
+async function fetchForecastWeatherByCoordinates(coordinates: Coordinates[], runStart: Date): Promise<WeatherData[]> {
+    const durationMinutes = Math.max(0, (coordinates.length - 1) * 15);
+    const runEnd = new Date(runStart.getTime() + durationMinutes * 60_000);
+    const startDate = formatDateForApi(runStart);
+    const endDate = formatDateForApi(runEnd);
+
+    const results: WeatherData[] = [];
+
+    for (let i = 0; i < coordinates.length; i++) {
+        const coordinate = coordinates[i];
+        const pointTime = new Date(runStart.getTime() + i * 15 * 60_000);
+        const resp = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${coordinate.latitude}&longitude=${coordinate.longitude}&start_date=${startDate}&end_date=${endDate}&minutely_15=temperature_2m,relative_humidity_2m,dew_point_2m,apparent_temperature,sunshine_duration,precipitation,snowfall,rain,showers,wind_speed_10m,wind_direction_10m,wind_gusts_10m,visibility,weather_code&timezone=auto`);
+        if (!resp.ok) {
+            throw new Error('Unable to fetch forecast weather');
+        }
+
+        const data = await resp.json() as {
+            latitude?: number;
+            longitude?: number;
+            elevation?: number;
+            minutely_15?: HistoricalHourlyData;
+        };
+        const minutelyData = data.minutely_15 ?? {};
+        const times = minutelyData.time ?? [];
+        const nearestIndex = findNearestTimeIndex(times, pointTime);
+        const weatherCode = toNumber(minutelyData.weather_code?.[nearestIndex], -1);
+
+        results.push({
+            latitude: toNumber(data.latitude, coordinate.latitude),
+            longitude: toNumber(data.longitude, coordinate.longitude),
+            time: times[nearestIndex] ?? formatDateTimeForApi(pointTime),
+            elevation: toNumber(data.elevation, 0),
+            temperature_2m: toNumber(minutelyData.temperature_2m?.[nearestIndex]),
+            relative_humidity_2m: toNumber(minutelyData.relative_humidity_2m?.[nearestIndex]),
+            dew_point_2m: toNumber(minutelyData.dew_point_2m?.[nearestIndex]),
+            apparent_temperature: toNumber(minutelyData.apparent_temperature?.[nearestIndex]),
+            sunshine_duration: toNumber(minutelyData.sunshine_duration?.[nearestIndex]),
+            precipitation: toNumber(minutelyData.precipitation?.[nearestIndex]),
+            snowfall: toNumber(minutelyData.snowfall?.[nearestIndex]),
+            rain: toNumber(minutelyData.rain?.[nearestIndex]),
+            showers: toNumber(minutelyData.showers?.[nearestIndex]),
+            wind_speed_10m: toNumber(minutelyData.wind_speed_10m?.[nearestIndex]),
+            wind_direction_10m: toNumber(minutelyData.wind_direction_10m?.[nearestIndex]),
+            wind_gusts_10m: toNumber(minutelyData.wind_gusts_10m?.[nearestIndex]),
+            visibility: toNumber(minutelyData.visibility?.[nearestIndex]),
+            weather_code: weatherCode,
+            weather_label: getWeatherLabel(weatherCode),
+        });
+    }
+
+    return results;
+}
+
 export async function fetchWeatherByCoordinatesMinutely15(coordinates: Coordinates[], runStartTime?: string): Promise<WeatherData[]> {
     if (coordinates.length === 0) {
         return [];
@@ -247,59 +302,10 @@ export async function fetchWeatherByCoordinatesMinutely15(coordinates: Coordinat
         return historical
     }
 
-    const startTimeQuery = normalizedStartTime ? `&start_minutely_15=${encodeURIComponent(normalizedStartTime)}` : '';
-    const resp = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${coordinates[0].latitude}&longitude=${coordinates[0].longitude}&minutely_15=temperature_2m,relative_humidity_2m,dew_point_2m,apparent_temperature,sunshine_duration,precipitation,snowfall,rain,showers,wind_speed_10m,wind_direction_10m,wind_gusts_10m,visibility,weather_code&forecast_minutely_15=${coordinates.length + 1}${startTimeQuery}&timezone=auto`);
-    if (!resp.ok) throw new Error('Unable to fetch');
-    const data = await resp.json();
-    const times = data.minutely_15.time;
-    const res = [{
-        latitude: data.latitude,
-        longitude: data.longitude,
-        time: data.minutely_15.time[0],
-        elevation: data.elevation,
-        temperature_2m: data.minutely_15.temperature_2m[0],
-        relative_humidity_2m: data.minutely_15.relative_humidity_2m[0],
-        dew_point_2m: data.minutely_15.dew_point_2m[0],
-        apparent_temperature: data.minutely_15.apparent_temperature[0],
-        sunshine_duration: data.minutely_15.sunshine_duration[0],
-        precipitation: data.minutely_15.precipitation[0],
-        snowfall: data.minutely_15.snowfall[0],
-        rain: data.minutely_15.rain[0],
-        showers: data.minutely_15.showers[0],
-        wind_speed_10m: data.minutely_15.wind_speed_10m[0],
-        wind_direction_10m: data.minutely_15.wind_direction_10m[0],
-        wind_gusts_10m: data.minutely_15.wind_gusts_10m[0],
-        visibility: data.minutely_15.visibility[0],
-        weather_code: data.minutely_15.weather_code[0],
-        weather_label: getWeatherLabel(data.minutely_15.weather_code[0])
-    }];
-
-    for (let i = 1; i < times.length - 1; i++) {
-        const resp = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${coordinates[i].latitude}&longitude=${coordinates[i].longitude}&minutely_15=temperature_2m,relative_humidity_2m,dew_point_2m,apparent_temperature,sunshine_duration,precipitation,snowfall,rain,showers,wind_speed_10m,wind_direction_10m,wind_gusts_10m,visibility,weather_code&start_minutely_15=${times[i]}&end_minutely_15=${times[i+1]}&timezone=auto`);
-        if (!resp.ok) throw new Error('Unable to fetch');
-        const data = await resp.json();
-        res.push({
-            latitude: data.latitude,
-            longitude: data.longitude,
-            time: times[i],
-            elevation: data.elevation,
-            temperature_2m: data.minutely_15.temperature_2m[0],
-            relative_humidity_2m: data.minutely_15.relative_humidity_2m[0],
-            dew_point_2m: data.minutely_15.dew_point_2m[0],
-            apparent_temperature: data.minutely_15.apparent_temperature[0],
-            sunshine_duration: data.minutely_15.sunshine_duration[0],
-            precipitation: data.minutely_15.precipitation[0],
-            snowfall: data.minutely_15.snowfall[0],
-            rain: data.minutely_15.rain[0],
-            showers: data.minutely_15.showers[0],
-            wind_speed_10m: data.minutely_15.wind_speed_10m[0],
-            wind_direction_10m: data.minutely_15.wind_direction_10m[0],
-            wind_gusts_10m: data.minutely_15.wind_gusts_10m[0],
-            visibility: data.minutely_15.visibility[0],
-            weather_code: data.minutely_15.weather_code[0],
-            weather_label: getWeatherLabel(data.minutely_15.weather_code[0])
-        });
-    }
-    apiCache.set(cacheKey, res)
-    return res;
+    const forecastStart = parsedRunStart && !Number.isNaN(parsedRunStart.getTime())
+        ? parsedRunStart
+        : roundToNearestQuarterHour(new Date());
+    const forecast = await fetchForecastWeatherByCoordinates(coordinates, forecastStart)
+    apiCache.set(cacheKey, forecast)
+    return forecast;
 }
