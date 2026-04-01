@@ -131,6 +131,15 @@ function formatDateForApi(dateTime: Date): string {
     return `${year}-${month}-${day}`;
 }
 
+function roundToNearestQuarterHour(dateTime: Date): Date {
+    const rounded = new Date(dateTime.getTime());
+    const minutes = rounded.getMinutes();
+    const roundedMinutes = Math.round(minutes / 15) * 15;
+    rounded.setSeconds(0, 0);
+    rounded.setMinutes(roundedMinutes);
+    return rounded;
+}
+
 function toNumber(value: unknown, fallback = 0): number {
     return typeof value === 'number' && Number.isFinite(value) ? value : fallback;
 }
@@ -221,7 +230,7 @@ export async function fetchWeatherByCoordinatesMinutely15(coordinates: Coordinat
     if (runStartTime) {
         const parsedStartTime = new Date(runStartTime);
         if (!Number.isNaN(parsedStartTime.getTime())) {
-            normalizedStartTime = formatDateTimeForApi(parsedStartTime);
+            normalizedStartTime = formatDateTimeForApi(roundToNearestQuarterHour(parsedStartTime));
         }
     }
 
@@ -266,13 +275,13 @@ export async function fetchWeatherByCoordinatesMinutely15(coordinates: Coordinat
     }];
 
     for (let i = 1; i < times.length - 1; i++) {
-        const resp = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${coordinates[i].latitude}&longitude=${coordinates[i].longitude}&minutely_15=temperature_2m,relative_humidity_2m,dew_point_2m,apparent_temperature,sunshine_duration,precipitation,snowfall,rain,showers,wind_speed_10m,wind_direction_10m,wind_gusts_10m,visibility,weather_code&start_minutely_15=${times[i]}&&end_minutely_15=${times[i+1]}&timezone=auto`);
+        const resp = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${coordinates[i].latitude}&longitude=${coordinates[i].longitude}&minutely_15=temperature_2m,relative_humidity_2m,dew_point_2m,apparent_temperature,sunshine_duration,precipitation,snowfall,rain,showers,wind_speed_10m,wind_direction_10m,wind_gusts_10m,visibility,weather_code&start_minutely_15=${times[i]}&end_minutely_15=${times[i+1]}&timezone=auto`);
         if (!resp.ok) throw new Error('Unable to fetch');
         const data = await resp.json();
         res.push({
             latitude: data.latitude,
             longitude: data.longitude,
-            time: data.minutely_15.time[0],
+            time: times[i],
             elevation: data.elevation,
             temperature_2m: data.minutely_15.temperature_2m[0],
             relative_humidity_2m: data.minutely_15.relative_humidity_2m[0],

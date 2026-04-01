@@ -85,6 +85,11 @@ const chartGroups: ChartGroup[] = [
 ]
 
 function formatTime(time: string): string {
+  const isoTimeMatch = time.match(/T(\d{2}:\d{2})/)
+  if (isoTimeMatch) {
+    return isoTimeMatch[1]
+  }
+
   const date = new Date(time)
   if (Number.isNaN(date.getTime())) {
     return time.length >= 16 ? time.slice(11, 16) : time
