@@ -8,6 +8,7 @@ export interface EquipmentRecommendation {
     niceToHave: EquipmentItem[];
 }
 
+// Going to have 2 recommendations - must have and nice to have, adjustments to urgency hierarchy can be made in equipment.ts
 function buildRecommendationForConditions(tags: ConditionTag[], reasons: string[]): EquipmentRecommendation {
     if (tags.length === 0) {
         return {

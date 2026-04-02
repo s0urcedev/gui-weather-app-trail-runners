@@ -33,6 +33,7 @@ export function detectConditions(weather: WeatherData): detectedCondition {
   } = weather;
 
   const totalRain  = rain + showers;
+  //API weather codes, check open meteo API documentation for more codes if need to be incl
   const isRainCode = (weather_code >= 51 && weather_code <= 67)
                   || (weather_code >= 80 && weather_code <= 82)
                   || weather_code >= 95;
